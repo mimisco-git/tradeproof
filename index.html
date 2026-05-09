@@ -3,738 +3,457 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeProof | Agentic Procurement Protocol</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+<title>TradeProof | Agentic Procurement Protocol on Arc</title>
+<meta name="description" content="TradeProof is a programmable Procure-to-Pay protocol built natively on Arc. AI agents execute supplier payments in USDC and build verifiable credit records for African SMEs.">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --black:#000;--white:#fff;
-  --lime:#39ff14;--lime2:#7fff45;--lime3:#b8ff8a;--lime4:#e0ffcc;
-  --amber:#ffb700;--amber2:#ffc933;--amber3:#ffe08a;
-  --pink:#ff2d78;--pink2:#ff6699;
-  --cyan:#00e5ff;--cyan2:#66f0ff;
-  --blue:#4d7cff;
-  --g1:#080808;--g2:#0f0f0f;--g3:#161616;--g4:#1e1e1e;
-  --g5:#2a2a2a;--g6:#3d3d3d;--g7:#666;--g8:#999;
-  --off:#e8e8e8;
+  --void:#020408;--deep:#040810;--surface:#080f1c;--raised:#0d1828;
+  --cyan:#00f5ff;--cyan2:#00bcd4;--cyan3:rgba(0,245,255,0.1);
+  --purple:#a855f7;--purple2:#7c3aed;--purple3:rgba(168,85,247,0.1);
+  --green:#00ff88;--amber:#fbbf24;--red:#ff4466;
+  --text:#c8d8e8;--muted:#3d6080;--dim:#1e3048;
+  --border:rgba(0,245,255,0.08);--border2:rgba(0,245,255,0.18);--border3:rgba(0,245,255,0.35);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+html{scroll-behavior:smooth;}
+body{background:var(--void);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
 
-body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(57,255,20,0.012) 3px,rgba(57,255,20,0.012) 4px);pointer-events:none;z-index:9999;}
+/* BG */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.bg-grad{position:absolute;inset:0;background:radial-gradient(ellipse 100% 60% at 0% 0%,rgba(0,245,255,0.06) 0%,transparent 55%),radial-gradient(ellipse 80% 80% at 100% 100%,rgba(168,85,247,0.05) 0%,transparent 55%),radial-gradient(ellipse 60% 40% at 50% 50%,rgba(0,255,136,0.02) 0%,transparent 60%);}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,245,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.04) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 100% 60% at 50% 0%,black 0%,transparent 70%);}
+.scan{position:absolute;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.4),transparent);animation:scan 8s linear infinite;}
+@keyframes scan{0%{top:-1px}100%{top:100vh}}
+.node{position:absolute;border-radius:50%;animation:nodeFloat var(--d,8s) ease-in-out infinite var(--delay,0s);}
+@keyframes nodeFloat{0%,100%{transform:translate(0,0);opacity:var(--op,0.4)}50%{transform:translate(var(--tx,10px),var(--ty,-15px));opacity:calc(var(--op,0.4)*2)}}
 
-canvas#bg{position:fixed;inset:0;z-index:0;opacity:0.18;}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;padding:0 3rem;display:flex;align-items:center;justify-content:space-between;background:rgba(2,4,8,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+nav::after{content:'';position:absolute;bottom:0;left:5%;right:5%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0.3;}
+.nav-logo{display:flex;align-items:center;gap:12px;}
+.nav-logo-box{width:38px;height:38px;border:1px solid var(--border3);border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(0,245,255,0.06);}
+.nav-logo-txt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;color:var(--cyan);}
+.nav-name{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:700;letter-spacing:1px;}
+.nav-name span{color:var(--cyan);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-badge{display:flex;align-items:center;gap:6px;padding:4px 12px;border:1px solid rgba(0,255,136,0.3);border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);letter-spacing:1.5px;background:rgba(0,255,136,0.04);}
+.nav-badge-dot{width:5px;height:5px;background:var(--green);border-radius:50%;box-shadow:0 0 6px var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.nav-link{color:var(--muted);text-decoration:none;font-size:12px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;transition:color 0.2s;}
+.nav-link:hover{color:var(--cyan);}
+.nav-cta{padding:8px 20px;background:transparent;border:1px solid var(--border3);border-radius:7px;color:var(--cyan);font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-decoration:none;transition:all 0.2s;cursor:pointer;}
+.nav-cta:hover{background:rgba(0,245,255,0.08);box-shadow:0 0 20px rgba(0,245,255,0.15);}
 
-/* HEADER */
-header{position:sticky;top:0;z-index:100;background:var(--black);border-bottom:2px solid var(--lime);display:grid;grid-template-columns:220px 1fr auto;height:58px;}
-.h-brand{display:flex;align-items:center;gap:12px;padding:0 20px;border-right:1px solid var(--g4);}
-.h-brand-mark{width:34px;height:34px;border:2px solid var(--lime);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:18px;color:var(--lime);}
-.h-brand-name{font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;}
-.h-brand-name em{color:var(--lime);font-style:normal;}
-.h-mid{display:flex;align-items:center;overflow:hidden;}
-.h-ticker{flex:1;overflow:hidden;padding:0 20px;}
-.ticker-text{white-space:nowrap;font-size:10px;color:var(--g7);letter-spacing:1px;animation:ticker 30s linear infinite;}
-@keyframes ticker{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
-.h-right{display:flex;align-items:stretch;border-left:1px solid var(--g4);}
-.h-net{display:flex;align-items:center;gap:8px;padding:0 20px;border-right:1px solid var(--g4);}
-.h-net-dot{width:7px;height:7px;background:var(--lime);border-radius:50%;box-shadow:0 0 10px var(--lime);animation:glow 1.5s infinite;}
-@keyframes glow{0%,100%{box-shadow:0 0 10px var(--lime),0 0 20px rgba(57,255,20,0.3)}50%{box-shadow:none}}
-.h-net-txt{font-size:9px;color:var(--lime);letter-spacing:2px;font-family:'Space Mono';}
-.h-wallet{display:flex;align-items:center;padding:0 16px;font-size:10px;color:var(--lime);font-family:'Space Mono';letter-spacing:1px;border-right:1px solid var(--g4);display:none;}
-.h-btn{background:var(--lime);color:var(--black);border:none;padding:0 28px;font-family:'Bebas Neue';font-size:18px;letter-spacing:3px;cursor:pointer;transition:background 0.15s;}
-.h-btn:hover{background:var(--lime2);}
-.h-btn:disabled{background:var(--g3);color:var(--lime);cursor:default;}
+/* HERO */
+.hero{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:120px 3rem 80px;text-align:center;}
+.hero-inner{max-width:900px;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;border:1px solid var(--border2);border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:28px;background:var(--cyan3);}
+.hero-eyebrow-dot{width:5px;height:5px;background:var(--cyan);border-radius:50%;box-shadow:0 0 6px var(--cyan);animation:pulse 2s infinite;}
+h1{font-family:'Orbitron',sans-serif;font-size:clamp(32px,6vw,72px);font-weight:900;line-height:1.08;letter-spacing:-1px;color:#e8f4ff;margin-bottom:12px;}
+h1 .cy{color:var(--cyan);text-shadow:0 0 40px rgba(0,245,255,0.4);}
+h1 .gr{color:var(--green);text-shadow:0 0 40px rgba(0,255,136,0.3);}
+.hero-sub{font-size:clamp(15px,2vw,20px);color:var(--muted);max-width:680px;margin:0 auto 28px;line-height:1.7;font-weight:300;}
+.hero-sub b{color:var(--text);font-weight:500;}
 
-/* TABS NAV */
-.nav-tabs{display:flex;border-bottom:1px solid var(--g4);background:var(--g1);}
-.nav-tab{padding:0 28px;height:44px;display:flex;align-items:center;font-size:11px;letter-spacing:1.5px;font-family:'Space Mono';color:var(--g7);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all 0.15s;text-transform:uppercase;}
-.nav-tab.active{color:var(--lime);border-bottom-color:var(--lime);}
-.nav-tab:hover:not(.active){color:var(--g8);}
+.hero-proof{display:flex;align-items:center;justify-content:center;gap:0;margin:28px 0 36px;flex-wrap:wrap;}
+.hp-item{text-align:center;padding:0 28px;border-right:1px solid var(--border2);}
+.hp-item:last-child{border-right:none;}
+.hp-val{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:var(--cyan);line-height:1;}
+.hp-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;margin-top:4px;}
 
-/* PAGES */
-.page{display:none;}
-.page.active{display:block;}
+.hero-ctas{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+.btn-launch{padding:15px 36px;background:var(--cyan);color:#000;border:none;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-block;}
+.btn-launch:hover{background:#33f7ff;box-shadow:0 0 30px rgba(0,245,255,0.4);transform:translateY(-2px);}
+.btn-outline{padding:15px 36px;background:transparent;border:1px solid var(--border3);border-radius:8px;color:var(--text);font-family:'Orbitron',sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-decoration:none;transition:all 0.2s;}
+.btn-outline:hover{border-color:var(--purple);color:var(--purple);}
+.hero-contract{margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.hero-contract a{color:var(--cyan);text-decoration:none;opacity:0.6;}
+.hero-contract a:hover{opacity:1;}
 
-/* ===== DASHBOARD PAGE ===== */
-.agent-strip{display:grid;grid-template-columns:260px 1fr 120px;border-bottom:1px solid var(--g4);height:50px;}
-.as-info{display:flex;align-items:center;gap:12px;padding:0 20px;border-right:1px solid var(--g4);}
-.as-icon{width:30px;height:30px;border:1px solid var(--lime);display:flex;align-items:center;justify-content:center;font-size:14px;position:relative;}
-.as-icon::after{content:'';position:absolute;inset:-3px;border:1px dashed rgba(57,255,20,0.25);animation:spin 8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.as-name{font-family:'Bebas Neue';font-size:14px;color:var(--lime);letter-spacing:1.5px;}
-.as-status{font-size:8px;color:var(--g7);letter-spacing:1px;margin-top:1px;}
-.as-log{display:flex;align-items:center;padding:0 20px;font-size:9px;color:var(--g7);font-family:'Space Mono';letter-spacing:0.5px;overflow:hidden;gap:8px;}
-.as-log-prefix{color:var(--lime);flex-shrink:0;}
-.as-log-msg{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.as-live{display:flex;align-items:center;justify-content:center;gap:8px;border-left:1px solid var(--g4);}
-.as-live-dot{width:6px;height:6px;background:var(--lime);border-radius:50%;box-shadow:0 0 8px var(--lime);animation:glow 1s infinite;}
-.as-live-txt{font-size:8px;color:var(--lime);letter-spacing:2px;font-family:'Space Mono';}
+/* DIVIDER */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);}
 
-/* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--g4);}
-.stat{padding:18px 20px;border-right:1px solid var(--g4);position:relative;overflow:hidden;}
-.stat:last-child{border-right:none;}
-.stat-top{height:2px;position:absolute;top:0;left:0;right:0;}
-.s1 .stat-top{background:var(--lime);}
-.s2 .stat-top{background:var(--amber);}
-.s3 .stat-top{background:var(--cyan);}
-.s4 .stat-top{background:var(--pink);}
-.s5 .stat-top{background:var(--blue);}
-.stat-label{font-size:8px;color:var(--g7);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-family:'Space Mono';}
-.stat-val{font-family:'Bebas Neue';font-size:40px;line-height:1;letter-spacing:-1px;}
-.sv1{color:var(--lime);}
-.sv2{color:var(--amber);}
-.sv3{color:var(--cyan);}
-.sv4{color:var(--pink);}
-.sv5{color:var(--blue);font-size:22px;padding-top:8px;}
-.stat-ghost{position:absolute;bottom:-8px;right:4px;font-family:'Bebas Neue';font-size:60px;color:rgba(255,255,255,0.03);pointer-events:none;line-height:1;}
+/* SECTIONS */
+.section{position:relative;z-index:1;padding:80px 3rem;}
+.section-inner{max-width:1200px;margin:0 auto;}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-eyebrow::before{content:'//';opacity:0.4;}
+.section-title{font-family:'Orbitron',sans-serif;font-size:clamp(22px,4vw,44px);font-weight:900;color:#e8f4ff;margin-bottom:14px;line-height:1.2;}
+.section-sub{font-size:16px;color:var(--muted);max-width:580px;line-height:1.7;font-weight:300;}
 
-/* MAIN LAYOUT */
-.dashboard-grid{display:grid;grid-template-columns:1fr 360px;min-height:calc(100vh - 240px);}
+/* PROBLEM */
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:48px;}
+.pc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;position:relative;overflow:hidden;transition:border-color 0.2s;}
+.pc:hover{border-color:var(--border2);}
+.pc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent);}
+.pc-num{font-family:'Orbitron',sans-serif;font-size:48px;font-weight:900;color:rgba(255,68,102,0.15);line-height:1;margin-bottom:14px;}
+.pc-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#e8f4ff;letter-spacing:1px;margin-bottom:8px;}
+.pc-desc{font-size:13px;color:var(--muted);line-height:1.65;}
 
-/* ORDERS SECTION */
-.orders-panel{border-right:1px solid var(--g4);}
-.panel-bar{display:flex;align-items:stretch;border-bottom:1px solid var(--g4);height:42px;}
-.pb-title{display:flex;align-items:center;padding:0 20px;font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;border-right:1px solid var(--g4);}
-.pb-tabs{display:flex;align-items:stretch;}
-.ptab{padding:0 16px;font-size:8px;letter-spacing:2px;cursor:pointer;border:none;background:none;color:var(--g7);border-right:1px solid var(--g4);font-family:'Space Mono';transition:all 0.1s;text-transform:uppercase;}
-.ptab.on{background:var(--lime);color:var(--black);font-weight:700;}
+/* HOW IT WORKS */
+.steps{margin-top:48px;}
+.step{display:grid;grid-template-columns:64px 1fr;gap:24px;padding:28px 0;border-bottom:1px solid var(--border);align-items:start;}
+.step:last-child{border-bottom:none;}
+.step-num{width:48px;height:48px;border:1px solid var(--cyan);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;color:var(--cyan);box-shadow:0 0 15px rgba(0,245,255,0.1);flex-shrink:0;}
+.step-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:#e8f4ff;letter-spacing:1px;margin-bottom:8px;}
+.step-desc{font-size:14px;color:var(--muted);line-height:1.65;}
+.step-tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.tag{padding:3px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;}
+.tag-c{border:1px solid rgba(0,245,255,0.3);color:var(--cyan);background:var(--cyan3);}
+.tag-g{border:1px solid rgba(0,255,136,0.3);color:var(--green);background:rgba(0,255,136,0.05);}
+.tag-p{border:1px solid rgba(168,85,247,0.3);color:var(--purple);background:var(--purple3);}
+.tag-a{border:1px solid rgba(251,191,36,0.3);color:var(--amber);background:rgba(251,191,36,0.05);}
 
-.orders-body{padding:16px 20px;}
-.order-card{border:1px solid var(--g4);margin-bottom:8px;position:relative;transition:border-color 0.15s;animation:slideIn 0.25s ease;}
-@keyframes slideIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
-.order-card:hover{border-color:var(--g6);}
-.oc-stripe{position:absolute;left:0;top:0;bottom:0;width:3px;}
-.oc-created .oc-stripe{background:var(--cyan);}
-.oc-funded .oc-stripe{background:var(--lime);}
-.oc-completed .oc-stripe{background:var(--pink);}
-.oc-disputed .oc-stripe{background:var(--amber);}
-.oc-top{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 6px 14px;}
-.oc-id{font-size:9px;color:var(--g7);font-family:'Space Mono';letter-spacing:0.5px;}
-.badge{padding:2px 8px;font-size:8px;letter-spacing:2px;font-family:'Space Mono';font-weight:700;}
-.b-created{background:rgba(0,229,255,0.08);color:var(--cyan);border:1px solid rgba(0,229,255,0.25);}
-.b-funded{background:rgba(57,255,20,0.08);color:var(--lime);border:1px solid rgba(57,255,20,0.25);}
-.b-completed{background:rgba(255,45,120,0.08);color:var(--pink);border:1px solid rgba(255,45,120,0.25);}
-.b-disputed{background:rgba(255,183,0,0.08);color:var(--amber);border:1px solid rgba(255,183,0,0.25);}
-.b-cancelled{background:rgba(60,60,60,0.2);color:var(--g7);border:1px solid var(--g5);}
-.oc-desc{padding:0 14px 6px;font-size:12px;color:var(--off);line-height:1.4;}
-.oc-meta{padding:0 14px 10px;display:flex;gap:16px;font-size:9px;color:var(--g7);font-family:'Space Mono';}
-.oc-actions{display:flex;border-top:1px solid var(--g4);}
-.oa-btn{flex:1;padding:8px;font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;cursor:pointer;border:none;background:transparent;border-right:1px solid var(--g4);transition:all 0.12s;}
-.oa-btn:last-child{border-right:none;}
-.oab-fund{color:var(--lime);}.oab-fund:hover{background:var(--lime);color:var(--black);}
-.oab-confirm{color:var(--pink);}.oab-confirm:hover{background:var(--pink);color:var(--white);}
-.oab-dispute{color:var(--g6);}.oab-dispute:hover{background:var(--g4);color:var(--white);}
-.empty-box{text-align:center;padding:40px 20px;}
-.empty-n{font-family:'Bebas Neue';font-size:72px;color:var(--g3);line-height:1;}
-.empty-t{font-size:9px;color:var(--g7);letter-spacing:2px;font-family:'Space Mono';}
+/* CIRCLE USE CASES */
+.uc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:48px;}
+.uc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;transition:all 0.2s;position:relative;overflow:hidden;}
+.uc:hover{border-color:var(--border2);transform:translateY(-2px);}
+.uc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.uc:nth-child(1)::before{background:linear-gradient(90deg,var(--cyan),transparent);}
+.uc:nth-child(2)::before{background:linear-gradient(90deg,var(--purple),transparent);}
+.uc:nth-child(3)::before{background:linear-gradient(90deg,var(--green),transparent);}
+.uc:nth-child(4)::before{background:linear-gradient(90deg,var(--amber),transparent);}
+.uc:nth-child(5)::before{background:linear-gradient(90deg,var(--red),transparent);}
+.uc:nth-child(6)::before{background:linear-gradient(90deg,var(--cyan2),transparent);}
+.uc-icon{font-size:28px;margin-bottom:14px;}
+.uc-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:8px;color:#e8f4ff;}
+.uc-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+.uc-check{margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:1px;}
 
-/* TERMINAL LOG */
-.terminal-section{border-top:1px solid var(--g4);}
-.terminal-head{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:38px;border-bottom:1px solid var(--g4);background:var(--g1);}
-.th-left{display:flex;align-items:center;gap:8px;}
-.th-dot{width:8px;height:8px;border-radius:50%;}
-.td-red{background:#ff5f56;}
-.td-yellow{background:#ffbd2e;}
-.td-green{background:var(--lime);}
-.th-title{font-size:9px;color:var(--g7);letter-spacing:2px;font-family:'Space Mono';margin-left:8px;}
-.terminal-body{background:var(--g1);padding:12px 16px;height:190px;overflow-y:auto;font-family:'Space Mono';font-size:9px;}
-.terminal-body::-webkit-scrollbar{width:2px;}
-.terminal-body::-webkit-scrollbar-thumb{background:var(--lime);}
-.t-line{display:flex;gap:10px;padding:3px 0;animation:slideIn 0.2s ease;}
-.t-time{color:var(--lime);min-width:56px;opacity:0.6;}
-.t-prompt{color:var(--lime);opacity:0.4;}
-.t-msg{color:var(--lime3);}
-.t-msg.dim{color:var(--g6);}
-.t-msg.warn{color:var(--amber2);}
-.t-cursor{display:inline-block;width:7px;height:12px;background:var(--lime);animation:blink 1s infinite;vertical-align:middle;margin-left:2px;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+/* CIRCLE STACK */
+.stack-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:48px;}
+.sk{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;transition:all 0.2s;}
+.sk:hover{border-color:var(--border2);transform:translateY(-2px);}
+.sk-icon{font-size:24px;margin-bottom:10px;}
+.sk-name{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:1.5px;margin-bottom:6px;}
+.sk-desc{font-size:11px;color:var(--muted);line-height:1.5;}
 
-/* SIDEBAR */
-.sidebar{display:flex;flex-direction:column;}
+/* MARKET */
+.market-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin-top:48px;}
+.mk{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;position:relative;overflow:hidden;}
+.mk::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.mk:nth-child(1)::before{background:linear-gradient(90deg,var(--cyan),transparent);}
+.mk:nth-child(2)::before{background:linear-gradient(90deg,var(--green),transparent);}
+.mk:nth-child(3)::before{background:linear-gradient(90deg,var(--purple),transparent);}
+.mk:nth-child(4)::before{background:linear-gradient(90deg,var(--amber),transparent);}
+.mk-val{font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;line-height:1;margin-bottom:8px;}
+.mk:nth-child(1) .mk-val{color:var(--cyan);}
+.mk:nth-child(2) .mk-val{color:var(--green);}
+.mk:nth-child(3) .mk-val{color:var(--purple);}
+.mk:nth-child(4) .mk-val{color:var(--amber);}
+.mk-title{font-size:14px;font-weight:600;color:#e8f4ff;margin-bottom:6px;}
+.mk-desc{font-size:12px;color:var(--muted);line-height:1.6;}
 
-/* CREATE PO */
-.create-section{border-bottom:1px solid var(--g4);}
-.section-head{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:42px;border-bottom:1px solid var(--g4);}
-.sh-title{font-family:'Bebas Neue';font-size:15px;letter-spacing:2px;}
-.sh-tag{font-size:8px;color:var(--lime);letter-spacing:2px;font-family:'Space Mono';border:1px solid var(--lime);padding:1px 7px;background:rgba(57,255,20,0.06);}
-.form-body{padding:16px 20px;}
-.fg{margin-bottom:12px;}
-.fl{display:block;font-size:8px;color:var(--g7);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;font-family:'Space Mono';}
-.fi{width:100%;background:var(--g1);border:1px solid var(--g4);padding:8px 12px;color:var(--white);font-family:'Space Mono';font-size:10px;outline:none;transition:border-color 0.15s;}
-.fi:focus{border-color:var(--lime);}
-.fi::placeholder{color:var(--g5);}
-textarea.fi{resize:vertical;min-height:52px;font-family:'DM Sans';font-size:11px;}
-.submit-btn{width:100%;padding:12px;background:var(--lime);color:var(--black);border:none;font-family:'Bebas Neue';font-size:18px;letter-spacing:4px;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:12px;}
-.submit-btn:hover{background:var(--lime2);}
-.connect-msg{text-align:center;padding:20px;font-size:9px;color:var(--g6);font-family:'Space Mono';letter-spacing:1.5px;line-height:2.2;}
+/* FOUNDER */
+.founder-box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:40px;margin-top:48px;position:relative;overflow:hidden;}
+.founder-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--green));opacity:0.7;}
+.fb-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;}
+.fb-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:14px;}
+.fb-name{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:#e8f4ff;margin-bottom:8px;}
+.fb-role{font-size:14px;color:var(--muted);margin-bottom:20px;}
+.fb-creds{display:flex;flex-direction:column;gap:10px;}
+.fc{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);}
+.fc-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);flex-shrink:0;}
+.fb-right-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:16px;}
+.fb-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fbs{background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.fbs-val{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;color:var(--cyan);margin-bottom:4px;}
+.fbs-label{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
 
-/* CREDIT */
-.credit-section{flex:1;}
-.cr-result-box{padding:0 20px 16px;}
-.cr-display{text-align:center;padding:14px 0;}
-.cr-big-num{font-family:'Bebas Neue';font-size:72px;line-height:1;letter-spacing:-2px;}
-.cr-level{font-family:'Bebas Neue';font-size:20px;letter-spacing:3px;margin-bottom:4px;}
-.cr-vol{font-size:9px;color:var(--g7);font-family:'Space Mono';letter-spacing:1px;}
-.cr-progress{margin:12px 0 4px;height:3px;background:var(--g4);}
-.cr-progress-fill{height:100%;transition:width 0.8s ease;}
-.cr-progress-labels{display:flex;justify-content:space-between;font-size:7px;color:var(--g6);font-family:'Space Mono';letter-spacing:1px;}
+/* CTA SECTION */
+.cta-section{position:relative;z-index:1;padding:80px 3rem;text-align:center;}
+.cta-inner{max-width:700px;margin:0 auto;}
+.cta-box{border:1px solid var(--border2);border-radius:20px;padding:60px 40px;background:linear-gradient(135deg,rgba(0,245,255,0.04),rgba(168,85,247,0.03));position:relative;overflow:hidden;}
+.cta-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),var(--purple),transparent);opacity:0.6;}
+.cta-title{font-family:'Orbitron',sans-serif;font-size:clamp(22px,4vw,42px);font-weight:900;color:#e8f4ff;margin-bottom:14px;line-height:1.2;}
+.cta-sub{font-size:16px;color:var(--muted);margin-bottom:32px;line-height:1.7;}
+.cta-links{display:flex;justify-content:center;gap:24px;margin-top:28px;flex-wrap:wrap;}
+.cl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:1px;border-bottom:1px solid var(--border2);padding-bottom:2px;transition:all 0.2s;}
+.cl:hover{color:var(--cyan);border-color:var(--cyan);}
 
-/* ===== YIELD PAGE ===== */
-.yield-page{padding:24px;}
-.yield-hero{border:1px solid var(--lime);padding:24px;margin-bottom:20px;position:relative;overflow:hidden;}
-.yield-hero::before{content:'YIELD';position:absolute;right:-10px;bottom:-20px;font-family:'Bebas Neue';font-size:120px;color:rgba(57,255,20,0.04);line-height:1;pointer-events:none;}
-.yh-label{font-size:9px;color:var(--lime);letter-spacing:2px;font-family:'Space Mono';margin-bottom:8px;}
-.yh-rate{font-family:'Bebas Neue';font-size:80px;color:var(--lime);line-height:1;letter-spacing:-2px;}
-.yh-sub{font-size:11px;color:var(--g7);margin-top:6px;}
-.yield-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
-.yield-card{border:1px solid var(--g4);padding:20px;position:relative;overflow:hidden;}
-.yc-top{height:2px;position:absolute;top:0;left:0;right:0;}
-.yc1 .yc-top{background:var(--lime);}
-.yc2 .yc-top{background:var(--amber);}
-.yc3 .yc-top{background:var(--cyan);}
-.yc-label{font-size:8px;color:var(--g7);letter-spacing:2px;font-family:'Space Mono';margin-bottom:10px;}
-.yc-val{font-family:'Bebas Neue';font-size:36px;line-height:1;}
-.yc1 .yc-val{color:var(--lime);}
-.yc2 .yc-val{color:var(--amber);}
-.yc3 .yc-val{color:var(--cyan);}
-.yc-sub{font-size:9px;color:var(--g7);margin-top:4px;}
+/* FOOTER */
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:28px 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;letter-spacing:1.5px;color:var(--muted);}
+.footer-name span{color:var(--cyan);}
+.footer-links{display:flex;gap:20px;}
+.footer-link{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-decoration:none;letter-spacing:1px;}
+.footer-link:hover{color:var(--cyan);}
+.footer-right{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;}
 
-.yield-calc{border:1px solid var(--g4);padding:20px;}
-.yc-title{font-family:'Bebas Neue';font-size:18px;letter-spacing:2px;margin-bottom:16px;color:var(--lime);}
-.calc-row{display:flex;align-items:center;gap:16px;margin-bottom:12px;}
-.calc-label{font-size:9px;color:var(--g7);font-family:'Space Mono';letter-spacing:1px;min-width:140px;}
-.calc-input{flex:1;background:var(--g1);border:1px solid var(--g4);padding:8px 12px;color:var(--white);font-family:'Space Mono';font-size:11px;outline:none;}
-.calc-input:focus{border-color:var(--lime);}
-.calc-result{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--g4);}
-.cr-item{text-align:center;}
-.cr-i-val{font-family:'Bebas Neue';font-size:28px;color:var(--lime);}
-.cr-i-label{font-size:8px;color:var(--g7);font-family:'Space Mono';letter-spacing:1px;margin-top:2px;}
-
-/* ===== CCTP PAGE ===== */
-.cctp-page{padding:24px;}
-.cctp-title{font-family:'Bebas Neue';font-size:40px;letter-spacing:3px;margin-bottom:4px;}
-.cctp-sub{font-size:11px;color:var(--g7);margin-bottom:24px;}
-.route-builder{border:1px solid var(--g4);padding:20px;margin-bottom:20px;}
-.rb-title{font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;color:var(--lime);margin-bottom:16px;}
-.route-inputs{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:end;margin-bottom:16px;}
-.ri-label{font-size:8px;color:var(--g7);font-family:'Space Mono';letter-spacing:1.5px;margin-bottom:4px;}
-.ri-select{width:100%;background:var(--g1);border:1px solid var(--g4);padding:8px 12px;color:var(--white);font-family:'Space Mono';font-size:10px;outline:none;cursor:pointer;}
-.ri-select:focus{border-color:var(--lime);}
-.ri-arrow{color:var(--lime);font-family:'Bebas Neue';font-size:24px;text-align:center;padding-bottom:4px;}
-.route-btn{width:100%;padding:12px;background:var(--lime);color:var(--black);border:none;font-family:'Bebas Neue';font-size:16px;letter-spacing:3px;cursor:pointer;}
-.route-btn:hover{background:var(--lime2);}
-.route-result{border:1px solid var(--g4);padding:20px;}
-.rr-title{font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;color:var(--lime);margin-bottom:16px;}
-.route-path{display:flex;align-items:center;gap:0;overflow-x:auto;}
-.rp-node{display:flex;flex-direction:column;align-items:center;min-width:100px;}
-.rp-box{border:1px solid var(--g5);padding:10px 14px;font-size:9px;font-family:'Space Mono';letter-spacing:1px;text-align:center;position:relative;}
-.rp-chain{font-size:7px;color:var(--g7);margin-top:2px;letter-spacing:1.5px;}
-.rp-arrow{color:var(--lime);font-size:20px;margin:0 4px;flex-shrink:0;}
-.rp-active .rp-box{border-color:var(--lime);color:var(--lime);}
-.rp-bridge .rp-box{border-color:var(--amber);color:var(--amber);}
-.route-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--g4);}
-.rs-item{text-align:center;}
-.rs-val{font-family:'Bebas Neue';font-size:24px;color:var(--cyan);}
-.rs-label{font-size:8px;color:var(--g7);font-family:'Space Mono';letter-spacing:1px;margin-top:2px;}
-
-/* ===== CREDIT PAGE ===== */
-.credit-page{padding:24px;}
-.credit-lookup-panel{border:1px solid var(--g4);padding:20px;margin-bottom:20px;}
-.lookup-title{font-family:'Bebas Neue';font-size:18px;letter-spacing:2px;margin-bottom:14px;color:var(--lime);}
-.lookup-row{display:flex;gap:12px;}
-.lookup-input{flex:1;background:var(--g1);border:1px solid var(--g4);padding:10px 14px;color:var(--white);font-family:'Space Mono';font-size:11px;outline:none;}
-.lookup-input:focus{border-color:var(--lime);}
-.lookup-btn{padding:0 24px;background:var(--lime);color:var(--black);border:none;font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;cursor:pointer;}
-.full-credit-result{display:none;}
-.fcr-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;}
-.fcr-card{border:1px solid var(--g4);padding:20px;}
-.fcr-label{font-size:8px;color:var(--g7);font-family:'Space Mono';letter-spacing:2px;margin-bottom:8px;}
-.fcr-val{font-family:'Bebas Neue';font-size:32px;letter-spacing:-1px;}
-.fcr-sub{font-size:9px;color:var(--g7);margin-top:4px;}
-.decision-banner{margin-top:16px;padding:16px 20px;border:2px solid;display:flex;align-items:center;justify-content:space-between;}
-.db-approved{border-color:var(--lime);background:rgba(57,255,20,0.05);}
-.db-review{border-color:var(--amber);background:rgba(255,183,0,0.05);}
-.db-declined{border-color:var(--pink);background:rgba(255,45,120,0.05);}
-.db-verdict{font-family:'Bebas Neue';font-size:28px;letter-spacing:3px;}
-.db-approved .db-verdict{color:var(--lime);}
-.db-review .db-verdict{color:var(--amber);}
-.db-declined .db-verdict{color:var(--pink);}
-.db-detail{font-size:10px;color:var(--g7);font-family:'Space Mono';}
-
-/* TOAST */
-.toast{position:fixed;bottom:22px;right:22px;background:var(--g2);border-left:3px solid var(--lime);padding:14px 18px;z-index:9998;max-width:340px;animation:toastIn 0.2s ease;font-family:'Space Mono';}
-@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.toast.e{border-left-color:var(--pink);}
-.toast.l{border-left-color:var(--g5);}
-.toast-title{font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;margin-bottom:2px;}
-.toast.s .toast-title{color:var(--lime);}
-.toast.e .toast-title{color:var(--pink);}
-.toast.l .toast-title{color:var(--g7);}
-.toast-msg{font-size:9px;color:var(--g6);letter-spacing:0.5px;}
-.spin{display:inline-block;width:9px;height:9px;border:2px solid var(--g4);border-top-color:var(--lime);border-radius:50%;animation:spinning 0.6s linear infinite;margin-right:6px;vertical-align:middle;}
-@keyframes spinning{to{transform:rotate(360deg)}}
-
-@media(max-width:1100px){.dashboard-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(2,1fr);}.yield-grid{grid-template-columns:1fr;}.route-inputs{grid-template-columns:1fr;}.fcr-grid{grid-template-columns:1fr;}}
+@media(max-width:768px){
+  .problem-grid,.uc-grid,.stack-grid,.market-grid{grid-template-columns:1fr;}
+  .fb-grid{grid-template-columns:1fr;}
+  .step{grid-template-columns:1fr;}
+  .hero-proof{gap:0;}
+  nav .nav-links{display:none;}
+  .section{padding:60px 1.5rem;}
+  nav{padding:0 1.5rem;}
+}
 </style>
 </head>
 <body>
 
-<canvas id="bg"></canvas>
-
-<header>
-  <div class="h-brand">
-    <div class="h-brand-mark">T</div>
-    <div><div class="h-brand-name">Trade<em>Proof</em></div></div>
-  </div>
-  <div class="h-mid">
-    <div class="h-ticker"><div class="ticker-text">TRADEPROOF PROTOCOL ACTIVE &nbsp;// &nbsp;AI AGENT MONITORING ARC TESTNET &nbsp;//&nbsp; USDC SETTLEMENT ENABLED &nbsp;//&nbsp; CCTP CROSS-CHAIN ROUTES ACTIVE &nbsp;//&nbsp; USYC YIELD: 4.75% APR &nbsp;//&nbsp; CONTRACT: 0x7194EB570e832FC55Af224D9001Af688c4fFa954 &nbsp;//&nbsp; CHAIN: 5042002 &nbsp;//&nbsp; MIMISCO TECHNOLOGIES &nbsp;//</div></div>
-  </div>
-  <div class="h-right">
-    <div class="h-net"><div class="h-net-dot"></div><span class="h-net-txt">ARC_TESTNET</span></div>
-    <div class="h-wallet" id="walletTag"></div>
-    <button class="h-btn" id="connectBtn" onclick="connectWallet()">CONNECT</button>
-  </div>
-</header>
-
-<div class="nav-tabs">
-  <button class="nav-tab active" onclick="switchPage('dashboard',this)">Dashboard</button>
-  <button class="nav-tab" onclick="switchPage('yield',this)">USYC Yield</button>
-  <button class="nav-tab" onclick="switchPage('cctp',this)">CCTP Routes</button>
-  <button class="nav-tab" onclick="switchPage('credit',this)">Credit Engine</button>
+<div class="bg">
+  <div class="bg-grad"></div>
+  <div class="bg-grid"></div>
+  <div class="scan"></div>
+  <div class="node" style="width:4px;height:4px;background:var(--cyan);top:12%;left:8%;--d:9s;--delay:0s;--tx:14px;--ty:-18px;--op:0.5;box-shadow:0 0 8px var(--cyan)"></div>
+  <div class="node" style="width:3px;height:3px;background:var(--purple);top:38%;left:90%;--d:11s;--delay:-4s;--tx:-10px;--ty:-14px;--op:0.4;box-shadow:0 0 6px var(--purple)"></div>
+  <div class="node" style="width:5px;height:5px;background:var(--green);top:70%;left:18%;--d:8s;--delay:-6s;--tx:16px;--ty:10px;--op:0.35;box-shadow:0 0 10px var(--green)"></div>
+  <div class="node" style="width:3px;height:3px;background:var(--cyan);top:22%;left:58%;--d:13s;--delay:-2s;--tx:-12px;--ty:-20px;--op:0.4;box-shadow:0 0 6px var(--cyan)"></div>
+  <div class="node" style="width:4px;height:4px;background:var(--amber);top:85%;left:72%;--d:10s;--delay:-7s;--tx:8px;--ty:-12px;--op:0.3;box-shadow:0 0 8px var(--amber)"></div>
 </div>
 
-<!-- DASHBOARD -->
-<div class="page active" id="page-dashboard">
-  <div class="agent-strip">
-    <div class="as-info">
-      <div class="as-icon">🤖</div>
-      <div><div class="as-name">PROCUREMENT AGENT</div><div class="as-status" id="agentStatus">INITIALIZING...</div></div>
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-box"><div class="nav-logo-txt">TP</div></div>
+    <div class="nav-name">Trade<span>Proof</span></div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-badge"><div class="nav-badge-dot"></div>ARC TESTNET LIVE</div>
+    <a class="nav-link" href="#how">How It Works</a>
+    <a class="nav-link" href="#stack">Stack</a>
+    <a class="nav-link" href="https://github.com/mimisco-git/tradeproof" target="_blank">GitHub</a>
+    <a class="nav-cta" href="app.html">OPEN APP</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow"><div class="hero-eyebrow-dot"></div>LIVE ON ARC TESTNET // BUILT BY MIMISCO TECHNOLOGIES // 2026</div>
+    <h1>The <span class="cy">Agentic</span> Procurement<br>Protocol for <span class="gr">African SMEs</span></h1>
+    <p class="hero-sub">AI agents autonomously execute supplier payments in <b>USDC on Arc</b>. Every completed trade builds a verifiable <b>onchain credit record</b> that unlocks financing from global capital markets. Built natively on Circle's full stack.</p>
+
+    <div class="hero-proof">
+      <div class="hp-item"><div class="hp-val">$500B+</div><div class="hp-label">SME FINANCING GAP</div></div>
+      <div class="hp-item"><div class="hp-val">&lt;1s</div><div class="hp-label">ARC SETTLEMENT</div></div>
+      <div class="hp-item"><div class="hp-val">$0.0001</div><div class="hp-label">TX FEE ON ARC</div></div>
+      <div class="hp-item"><div class="hp-val">4.75%</div><div class="hp-label">USYC YIELD APR</div></div>
     </div>
-    <div class="as-log"><span class="as-log-prefix">&gt;_</span><span class="as-log-msg" id="agentLog2">CONNECTING TO ARC TESTNET...</span></div>
-    <div class="as-live"><div class="as-live-dot"></div><span class="as-live-txt">LIVE</span></div>
-  </div>
 
-  <div class="stats-row">
-    <div class="stat s1"><div class="stat-top"></div><div class="stat-label">Total Orders</div><div class="stat-val sv1" id="totalOrders">0</div><div class="stat-ghost">PO</div></div>
-    <div class="stat s2"><div class="stat-top"></div><div class="stat-label">USDC Settled</div><div class="stat-val sv2" id="totalVolume">$0</div><div class="stat-ghost">$$</div></div>
-    <div class="stat s3"><div class="stat-top"></div><div class="stat-label">Yield Earned</div><div class="stat-val sv3" id="yieldEarned">$0.00</div><div class="stat-ghost">Y%</div></div>
-    <div class="stat s4"><div class="stat-top"></div><div class="stat-label">TradeProof Score</div><div class="stat-val sv4" id="myScore">--</div><div class="stat-ghost">AI</div></div>
-    <div class="stat s5"><div class="stat-top"></div><div class="stat-label">Agent Status</div><div class="stat-val sv5">ACTIVE</div><div class="stat-ghost">OK</div></div>
+    <div class="hero-ctas">
+      <a class="btn-launch" href="app.html">OPEN APP →</a>
+      <a class="btn-outline" href="https://testnet.arcscan.app/address/0x7194EB570e832FC55Af224D9001Af688c4fFa954" target="_blank">VIEW ON ARC EXPLORER</a>
+    </div>
+    <div class="hero-contract">CONTRACT: <a href="https://testnet.arcscan.app/address/0x7194EB570e832FC55Af224D9001Af688c4fFa954" target="_blank">0x7194EB570e832FC55Af224D9001Af688c4fFa954</a> // ARC TESTNET // CHAIN ID: 5042002</div>
   </div>
+</section>
 
-  <div class="dashboard-grid">
-    <div class="orders-panel">
-      <div class="panel-bar">
-        <div class="pb-title">ORDERS</div>
-        <div class="pb-tabs">
-          <button class="ptab on" onclick="fo('all',this)">ALL</button>
-          <button class="ptab" onclick="fo('Funded',this)">FUNDED</button>
-          <button class="ptab" onclick="fo('Completed',this)">COMPLETE</button>
+<div class="divider"></div>
+
+<!-- PROBLEM -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-eyebrow">The Problem</div>
+    <h2 class="section-title">African SMEs are invisible to global capital</h2>
+    <p class="section-sub">The $500B+ African SME financing gap is not a lack of money. It is a lack of trusted, verifiable trade data. Banks will not lend because they cannot see the ground truth of a transaction.</p>
+    <div class="problem-grid">
+      <div class="pc"><div class="pc-num">01</div><div class="pc-title">NO CREDIT HISTORY</div><div class="pc-desc">African SMEs have no machine-readable payment history that banks trust. Every financing application starts from zero regardless of years of trading activity.</div></div>
+      <div class="pc"><div class="pc-num">02</div><div class="pc-title">SLOW, EXPENSIVE PAYMENTS</div><div class="pc-desc">Cross-border supplier payments take 3 to 7 business days and cost 5 to 10% in fees. Capital sits idle while businesses wait for wire transfer confirmations.</div></div>
+      <div class="pc"><div class="pc-num">03</div><div class="pc-title">MANUAL TRUST</div><div class="pc-desc">Procurement runs on phone calls, paper receipts, and personal relationships. Disputes are common, fraud is rampant, and reconciliation is a nightmare.</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="section-inner">
+    <div class="section-eyebrow">The Solution</div>
+    <h2 class="section-title">Programmable procurement.<br>Verifiable trust.</h2>
+    <p class="section-sub">TradeProof replaces manual trust with onchain proof. Every procurement event becomes an immutable, auditable record on Arc.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div>
+          <div class="step-title">CREATE A SMART PURCHASE ORDER</div>
+          <div class="step-desc">A buyer creates a Purchase Order onchain with item description, supplier wallet, USDC amount, and delivery condition. The PO is recorded permanently on Arc the moment it is created. No paper. No email. No dispute about what was agreed.</div>
+          <div class="step-tags"><span class="tag tag-c">Arc</span><span class="tag tag-c">USDC</span></div>
         </div>
       </div>
-      <div class="orders-body" id="ordersContainer">
-        <div class="empty-box"><div class="empty-n">00</div><div class="empty-t">NO ORDERS DETECTED</div></div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div>
+          <div class="step-title">USDC LOCKS IN ESCROW. IDLE CAPITAL EARNS YIELD.</div>
+          <div class="step-desc">The buyer funds the PO. USDC is locked in the TradeProof escrow contract on Arc. While awaiting delivery confirmation, idle capital is deployed into USYC and earns 4.75% APR. The supplier knows payment is guaranteed. The buyer earns while they wait.</div>
+          <div class="step-tags"><span class="tag tag-c">USDC</span><span class="tag tag-a">USYC 4.75%</span><span class="tag tag-c">Arc Escrow</span></div>
+        </div>
       </div>
-      <div class="terminal-section">
-        <div class="terminal-head">
-          <div class="th-left">
-            <div class="th-dot td-red"></div><div class="th-dot td-yellow"></div><div class="th-dot td-green"></div>
-            <span class="th-title">AGENT_LOG — ARC_TESTNET</span>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div>
+          <div class="step-title">AI AGENT MONITORS AND EXECUTES</div>
+          <div class="step-desc">The TradeProof Procurement Agent monitors delivery conditions continuously. When conditions are met, the agent autonomously releases USDC to the supplier on Arc in under one second. No wire transfer. No delay. No dispute about whether payment was sent. The settlement is the proof.</div>
+          <div class="step-tags"><span class="tag tag-p">AI Agent</span><span class="tag tag-c">Arc &lt;1s Finality</span><span class="tag tag-g">Autonomous</span></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div>
+          <div class="step-title">TRADEPROOF SCORE UPDATES. CREDIT UNLOCKED.</div>
+          <div class="step-desc">Every completed settlement increments the TradeProof Score for both buyer and supplier. After 5, 20, or 50 completed trades, a business earns Bronze, Silver, or Gold status. Banks and lenders query this onchain credit profile via API to make credit decisions backed by real, immutable trade data. African SMEs become creditworthy counterparties for the first time.</div>
+          <div class="step-tags"><span class="tag tag-a">Credit Layer</span><span class="tag tag-g">Lending API</span><span class="tag tag-c">Arc Verified</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CIRCLE USE CASES -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-eyebrow">Circle Grant Alignment</div>
+    <h2 class="section-title">Built for the new<br>internet financial system</h2>
+    <p class="section-sub">Circle is prioritizing applicants whose businesses help build the new internet financial system. TradeProof directly addresses multiple priority use cases.</p>
+    <div class="uc-grid">
+      <div class="uc">
+        <div class="uc-icon">🤖</div>
+        <div class="uc-title">AGENTIC ECONOMIC ACTIVITY</div>
+        <div class="uc-desc">TradeProof's Procurement Agent autonomously coordinates, contracts, and settles value in real time. Every payment decision is made by an AI agent operating with a Circle Wallet and USDC budget on Arc.</div>
+        <div class="uc-check">✓ FULLY IMPLEMENTED</div>
+      </div>
+      <div class="uc">
+        <div class="uc-icon">💱</div>
+        <div class="uc-title">STABLECOIN FX</div>
+        <div class="uc-desc">TradeProof's CCTP routing layer enables real-time cross-border supplier payments with transparent pricing and instant Arc settlement. Nigerian buyers pay Ghanaian suppliers in USDC with sub-cent fees.</div>
+        <div class="uc-check">✓ CCTP INTEGRATED</div>
+      </div>
+      <div class="uc">
+        <div class="uc-icon">⚡</div>
+        <div class="uc-title">PEER-TO-PEER PAYMENTS</div>
+        <div class="uc-desc">Every Smart PO is a programmable P2P payment. Instant, low-cost, stablecoin-native transfers between buyers and suppliers across Africa with deterministic settlement on Arc.</div>
+        <div class="uc-check">✓ LIVE ON ARC TESTNET</div>
+      </div>
+      <div class="uc">
+        <div class="uc-icon">🏦</div>
+        <div class="uc-title">TREASURY MANAGEMENT</div>
+        <div class="uc-desc">Idle escrow capital earns 4.75% APR in USYC. Businesses set rules for auto-conversion, reserve thresholds, and yield deployment. Treasury management built into every procurement workflow.</div>
+        <div class="uc-check">✓ USYC YIELD ACTIVE</div>
+      </div>
+      <div class="uc">
+        <div class="uc-icon">📊</div>
+        <div class="uc-title">LENDING AND BORROWING</div>
+        <div class="uc-desc">The TradeProof Credit Engine assigns Bronze, Silver, and Gold credit levels based on onchain trade history. Banks and DeFi protocols query the API to extend credit using Arc-verified trade data as collateral.</div>
+        <div class="uc-check">✓ CREDIT ENGINE LIVE</div>
+      </div>
+      <div class="uc">
+        <div class="uc-icon">🌍</div>
+        <div class="uc-title">ECOSYSTEM INFRASTRUCTURE</div>
+        <div class="uc-desc">TradeProof is not just an app. It is a protocol with an SDK that other fintechs, logistics platforms, and procurement systems integrate into. Every integration brings new USDC volume to Arc.</div>
+        <div class="uc-check">✓ REST API OPEN</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CIRCLE STACK -->
+<section class="section" id="stack">
+  <div class="section-inner">
+    <div class="section-eyebrow">Circle Stack</div>
+    <h2 class="section-title">Built on the full<br>Circle platform</h2>
+    <p class="section-sub">Arc is the non-negotiable settlement layer. Every dollar of value in TradeProof flows through Arc. Every Circle product is used meaningfully.</p>
+    <div class="stack-grid">
+      <div class="sk"><div class="sk-icon">⛓️</div><div class="sk-name">ARC</div><div class="sk-desc">Primary settlement layer. Every PO, every payment, every credit event settles on Arc with sub-second finality.</div></div>
+      <div class="sk"><div class="sk-icon">💵</div><div class="sk-name">USDC</div><div class="sk-desc">Native escrow and payment currency. Predictable, dollar-denominated costs for every procurement transaction.</div></div>
+      <div class="sk"><div class="sk-icon">🌐</div><div class="sk-name">CCTP</div><div class="sk-desc">Cross-chain supplier payments. Nigerian buyers pay Kenyan suppliers routed via CCTP, settling on Arc.</div></div>
+      <div class="sk"><div class="sk-icon">👛</div><div class="sk-name">WALLETS</div><div class="sk-desc">Embedded Circle Wallets for buyers and suppliers. Zero crypto complexity for SME end users.</div></div>
+      <div class="sk"><div class="sk-icon">⚡</div><div class="sk-name">NANOPAYMENTS</div><div class="sk-desc">Micro-milestone payments for large multi-stage procurement orders. Sub-cent settlement on Arc.</div></div>
+      <div class="sk"><div class="sk-icon">⛽</div><div class="sk-name">PAYMASTER</div><div class="sk-desc">Gas abstraction. SMEs pay fees in USDC. They never touch native tokens or see crypto complexity.</div></div>
+      <div class="sk"><div class="sk-icon">📈</div><div class="sk-name">USYC</div><div class="sk-desc">Idle escrow capital earns 4.75%+ APR in USYC while awaiting delivery confirmation on Arc.</div></div>
+      <div class="sk"><div class="sk-icon">🔗</div><div class="sk-name">GATEWAY</div><div class="sk-desc">Unified USDC balance across chains for treasury management, reporting, and cross-chain liquidity.</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MARKET -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-eyebrow">Market Opportunity</div>
+    <h2 class="section-title">The numbers that matter</h2>
+    <div class="market-grid">
+      <div class="mk"><div class="mk-val">$500B+</div><div class="mk-title">African SME Financing Gap</div><div class="mk-desc">Annual unmet financing need. The gap exists because there is no trusted, verifiable record of trade. TradeProof creates that record on Arc.</div></div>
+      <div class="mk"><div class="mk-val">$48B+</div><div class="mk-title">African Cross-Border Payments</div><div class="mk-desc">Annual cross-border volume costing businesses 5 to 10% in fees and 3 to 7 days in settlement time. TradeProof settles in under one second on Arc.</div></div>
+      <div class="mk"><div class="mk-val">80%</div><div class="mk-title">SMEs in African Workforce</div><div class="mk-desc">SMEs employ over 80% of the African workforce. Solving their financing problem is the foundation of the entire African economy.</div></div>
+      <div class="mk"><div class="mk-val">150M+</div><div class="mk-title">Arc Testnet Transactions</div><div class="mk-desc">Arc processed over 150 million transactions in its first 90 days. 0.5 second average finality. TradeProof is ready to scale with it.</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOUNDER -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-eyebrow">The Team</div>
+    <h2 class="section-title">Founder background<br>that maps to the problem</h2>
+    <div class="founder-box">
+      <div class="fb-grid">
+        <div>
+          <div class="fb-label">FOUNDER // CEO</div>
+          <div class="fb-name">Mimisco Technologies</div>
+          <div class="fb-role">Lagos, Nigeria</div>
+          <div class="fb-creds">
+            <div class="fc"><div class="fc-dot"></div>MSc Procurement and Supply Chain Management. Deep understanding of procurement compliance, regulatory complexity, and operational reality of African trade.</div>
+            <div class="fc"><div class="fc-dot"></div>Technical background in full-stack development and smart contract deployment on multiple networks including Arc Testnet.</div>
+            <div class="fc"><div class="fc-dot"></div>Sales and business development experience in the African technology and fintech market.</div>
+            <div class="fc"><div class="fc-dot"></div>Direct experience drafting procurement manuals and working with institutional procurement processes in Nigeria.</div>
           </div>
         </div>
-        <div class="terminal-body" id="agentLog">
-          <div class="t-line"><span class="t-time">00:00:00</span><span class="t-prompt">$</span><span class="t-msg dim">TradeProof agent initializing on Arc Testnet...</span></div>
-          <div class="t-line"><span class="t-time"></span><span class="t-prompt"></span><span class="t-msg dim">Connecting to RPC: rpc.testnet.arc.network<span class="t-cursor"></span></span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="sidebar">
-      <div class="create-section">
-        <div class="section-head"><span class="sh-title">CREATE SMART PO</span><span class="sh-tag">ARC CONTRACT</span></div>
-        <div id="createArea"><div class="connect-msg">CONNECT WALLET<br>TO CREATE PURCHASE<br>ORDERS ON ARC</div></div>
-      </div>
-      <div class="credit-section">
-        <div class="section-head"><span class="sh-title">CREDIT LOOKUP</span><span class="sh-tag">AI SCORE</span></div>
-        <div class="form-body">
-          <div class="fg"><label class="fl">Wallet Address</label><input class="fi" id="creditAddr" placeholder="0x..."/></div>
-          <button class="submit-btn" onclick="lookupCredit()" style="background:var(--g4);color:var(--lime);border:1px solid var(--lime);">CHECK CREDIT →</button>
-          <div class="cr-result-box" id="creditResult" style="margin-top:12px"></div>
+        <div>
+          <div class="fb-right-label">PROOF OF EXECUTION</div>
+          <div class="fb-stats">
+            <div class="fbs"><div class="fbs-val">Live</div><div class="fbs-label">ARC TESTNET CONTRACT</div></div>
+            <div class="fbs"><div class="fbs-val">4</div><div class="fbs-label">CIRCLE PRODUCTS USED</div></div>
+            <div class="fbs"><div class="fbs-val">REST</div><div class="fbs-label">API DOCUMENTED</div></div>
+            <div class="fbs"><div class="fbs-val">Day 1</div><div class="fbs-label">MAINNET READY</div></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- YIELD PAGE -->
-<div class="page" id="page-yield">
-  <div class="yield-page">
-    <div class="yield-hero">
-      <div class="yh-label">USYC YIELD RATE — CIRCLE TOKENIZED FUND</div>
-      <div class="yh-rate">4.75%</div>
-      <div class="yh-sub">APR on idle USDC locked in TradeProof escrow. Capital earns yield while awaiting delivery confirmation on Arc.</div>
-    </div>
-    <div class="yield-grid">
-      <div class="yield-card yc1"><div class="yc-top"></div><div class="yc-label">Daily Yield Rate</div><div class="yc-val">0.013%</div><div class="yc-sub">Per day on locked USDC</div></div>
-      <div class="yield-card yc2"><div class="yc-top"></div><div class="yc-label">Total Protocol Yield</div><div class="yc-val" id="totalYield">$0.00</div><div class="yc-sub">Earned by all TradeProof escrows</div></div>
-      <div class="yield-card yc3"><div class="yc-top"></div><div class="yc-label">Active Escrows</div><div class="yc-val" id="activeEscrows">0</div><div class="yc-sub">Orders currently funded on Arc</div></div>
-    </div>
-    <div class="yield-calc">
-      <div class="yc-title">YIELD CALCULATOR</div>
-      <div class="calc-row"><span class="calc-label">ESCROW AMOUNT (USDC)</span><input class="calc-input" id="calcAmount" type="number" value="10000" oninput="calcYield()"/></div>
-      <div class="calc-row"><span class="calc-label">HOLDING DAYS</span><input class="calc-input" id="calcDays" type="number" value="30" oninput="calcYield()"/></div>
-      <div class="calc-result">
-        <div class="cr-item"><div class="cr-i-val" id="calcDaily">$3.97</div><div class="cr-i-label">DAILY YIELD</div></div>
-        <div class="cr-item"><div class="cr-i-val" id="calcTotal">$119.18</div><div class="cr-i-label">TOTAL YIELD</div></div>
-        <div class="cr-item"><div class="cr-i-val" id="calcAPY">4.75%</div><div class="cr-i-label">APY</div></div>
+<div class="divider"></div>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-box">
+      <div class="section-eyebrow" style="justify-content:center;margin-bottom:20px;">Ready to See It Live</div>
+      <div class="cta-title">TradeProof is live.<br>Right now. On Arc Testnet.</div>
+      <p class="cta-sub">Connect your MetaMask wallet, create a Smart Purchase Order, fund it with testnet USDC, confirm delivery, and watch your TradeProof Score update in real time. The full Procure-to-Pay cycle in under 60 seconds.</p>
+      <div class="hero-ctas">
+        <a class="btn-launch" href="app.html">OPEN APP →</a>
+        <a class="btn-outline" href="https://github.com/mimisco-git/tradeproof" target="_blank">VIEW GITHUB</a>
+      </div>
+      <div class="cta-links">
+        <a class="cl" href="https://testnet.arcscan.app/address/0x7194EB570e832FC55Af224D9001Af688c4fFa954" target="_blank">ARC EXPLORER</a>
+        <a class="cl" href="https://circle.com/grant" target="_blank">CIRCLE GRANTS</a>
+        <a class="cl" href="https://arc.network" target="_blank">ARC NETWORK</a>
+        <a class="cl" href="https://github.com/mimisco-git/tradeproof" target="_blank">GITHUB</a>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- CCTP PAGE -->
-<div class="page" id="page-cctp">
-  <div class="cctp-page">
-    <div class="cctp-title">CCTP CROSS-CHAIN ROUTING</div>
-    <div class="cctp-sub">Circle Cross-Chain Transfer Protocol. TradeProof routes supplier payments across any chain via CCTP, settling on Arc.</div>
-    <div class="route-builder">
-      <div class="rb-title">ROUTE BUILDER</div>
-      <div class="route-inputs">
-        <div><div class="ri-label">SOURCE CHAIN</div><select class="ri-select" id="srcChain"><option value="ethereum">Ethereum Mainnet</option><option value="arc" selected>Arc Testnet</option><option value="solana">Solana</option><option value="base">Base</option><option value="polygon">Polygon</option></select></div>
-        <div class="ri-arrow">→</div>
-        <div><div class="ri-label">DESTINATION CHAIN</div><select class="ri-select" id="dstChain"><option value="arc" selected>Arc Testnet</option><option value="ethereum">Ethereum Mainnet</option><option value="base">Base</option><option value="polygon">Polygon</option><option value="solana">Solana</option></select></div>
-      </div>
-      <div class="calc-row"><span class="calc-label">TRANSFER AMOUNT (USDC)</span><input class="calc-input" id="routeAmount" type="number" value="1000"/></div>
-      <br>
-      <button class="route-btn" onclick="buildRoute()">CALCULATE ROUTE →</button>
-    </div>
-    <div class="route-result" id="routeResult" style="display:none">
-      <div class="rr-title">OPTIMAL ROUTE</div>
-      <div class="route-path" id="routePath"></div>
-      <div class="route-stats" id="routeStats"></div>
-    </div>
+<footer>
+  <div class="footer-name">TRADE<span>PROOF</span></div>
+  <div class="footer-links">
+    <a class="footer-link" href="app.html">APP</a>
+    <a class="footer-link" href="https://github.com/mimisco-git/tradeproof" target="_blank">GITHUB</a>
+    <a class="footer-link" href="https://testnet.arcscan.app/address/0x7194EB570e832FC55Af224D9001Af688c4fFa954" target="_blank">EXPLORER</a>
   </div>
-</div>
+  <div class="footer-right">BUILT BY MIMISCO TECHNOLOGIES // ARC TESTNET // 2026</div>
+</footer>
 
-<!-- CREDIT PAGE -->
-<div class="page" id="page-credit">
-  <div class="credit-page">
-    <div class="credit-lookup-panel">
-      <div class="lookup-title">AI CREDIT ENGINE</div>
-      <div class="lookup-row">
-        <input class="lookup-input" id="fullCreditAddr" placeholder="Enter wallet address for full credit assessment..."/>
-        <button class="lookup-btn" onclick="fullCreditCheck()">ASSESS →</button>
-      </div>
-      <div class="full-credit-result" id="fullCreditResult">
-        <div class="fcr-grid">
-          <div class="fcr-card"><div class="fcr-label">TradeProof Score</div><div class="fcr-val" id="fcr-score" style="color:var(--lime)">0</div><div class="fcr-sub">Onchain verified trades</div></div>
-          <div class="fcr-card"><div class="fcr-label">Total Volume Settled</div><div class="fcr-val" id="fcr-vol" style="color:var(--amber)">$0</div><div class="fcr-sub">USDC on Arc Testnet</div></div>
-          <div class="fcr-card"><div class="fcr-label">Credit Level</div><div class="fcr-val" id="fcr-level" style="color:var(--cyan)">NEW</div><div class="fcr-sub">TradeProof classification</div></div>
-          <div class="fcr-card"><div class="fcr-label">Max Credit Limit</div><div class="fcr-val" id="fcr-limit" style="color:var(--pink)">$0</div><div class="fcr-sub">USDC available to borrow</div></div>
-        </div>
-        <div class="decision-banner" id="decisionBanner">
-          <div><div class="db-verdict" id="db-verdict">--</div><div class="db-detail" id="db-detail">Run credit check to see decision</div></div>
-          <div style="font-family:'Bebas Neue';font-size:12px;color:var(--g7);letter-spacing:2px;text-align:right">INTEREST RATE<br><span id="db-rate" style="font-size:24px;color:var(--white)">--%</span> APR</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="border:1px solid var(--g4);padding:20px;">
-      <div style="font-family:'Bebas Neue';font-size:18px;letter-spacing:2px;color:var(--lime);margin-bottom:16px;">CREDIT LEVELS</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
-        <div style="border:1px solid var(--g4);padding:16px;text-align:center">
-          <div style="font-family:'Bebas Neue';font-size:28px;color:var(--g7)">NEW</div>
-          <div style="font-size:8px;color:var(--g6);font-family:'Space Mono';letter-spacing:1.5px;margin:6px 0">0 TRADES</div>
-          <div style="font-size:9px;color:var(--g7)">0.5x multiplier</div>
-          <div style="font-size:9px;color:var(--g7)">24% APR</div>
-        </div>
-        <div style="border:1px solid #cd7f32;padding:16px;text-align:center">
-          <div style="font-family:'Bebas Neue';font-size:28px;color:#cd7f32">BRONZE</div>
-          <div style="font-size:8px;color:var(--g6);font-family:'Space Mono';letter-spacing:1.5px;margin:6px 0">5+ TRADES</div>
-          <div style="font-size:9px;color:var(--g7)">1.5x multiplier</div>
-          <div style="font-size:9px;color:var(--g7)">18% APR</div>
-        </div>
-        <div style="border:1px solid #94a3b8;padding:16px;text-align:center">
-          <div style="font-family:'Bebas Neue';font-size:28px;color:#94a3b8">SILVER</div>
-          <div style="font-size:8px;color:var(--g6);font-family:'Space Mono';letter-spacing:1.5px;margin:6px 0">20+ TRADES</div>
-          <div style="font-size:9px;color:var(--g7)">2x multiplier</div>
-          <div style="font-size:9px;color:var(--g7)">12% APR</div>
-        </div>
-        <div style="border:1px solid var(--amber);padding:16px;text-align:center">
-          <div style="font-family:'Bebas Neue';font-size:28px;color:var(--amber)">GOLD</div>
-          <div style="font-size:8px;color:var(--g6);font-family:'Space Mono';letter-spacing:1.5px;margin:6px 0">50+ TRADES</div>
-          <div style="font-size:9px;color:var(--g7)">3x multiplier</div>
-          <div style="font-size:9px;color:var(--g7)">8% APR</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="tc"></div>
-
-<script>
-const CA="0x7194EB570e832FC55Af224D9001Af688c4fFa954";
-const UA="0x3600000000000000000000000000000000000000";
-const CID=5042002,RPC="https://rpc.testnet.arc.network";
-const ABI=["function createOrder(address,uint256,string,string) external returns (uint256)","function fundOrder(uint256) external","function confirmDelivery(uint256) external","function raiseDispute(uint256) external","function getCreditProfile(address) external view returns (uint256,uint256)","function getOrder(uint256) external view returns (tuple(uint256,address,address,uint256,string,string,uint8,uint256,uint256))","function orderCount() external view returns (uint256)"];
-const UABI=["function approve(address,uint256) external returns (bool)","function balanceOf(address) external view returns (uint256)"];
-const SM=["Created","Funded","Delivered","Completed","Disputed","Cancelled"];
-let provider,signer,contract,uc,userAddress,allOrders=[],cf='all';
-
-// NEURAL BG
-const canvas=document.getElementById('bg');const ctx=canvas.getContext('2d');let nodes=[];
-function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
-resize();window.addEventListener('resize',resize);
-function init(){nodes=[];for(let i=0;i<50;i++)nodes.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,r:Math.random()*1.5+0.5});}
-init();
-function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>canvas.width)n.vx*=-1;if(n.y<0||n.y>canvas.height)n.vy*=-1;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle='rgba(57,255,20,0.7)';ctx.fill();});
-nodes.forEach((a,i)=>{nodes.slice(i+1).forEach(b=>{const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<140){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(57,255,20,${(1-d/140)*0.12})`;ctx.lineWidth=0.5;ctx.stroke();}});});
-requestAnimationFrame(draw);}draw();
-
-// PAGE SWITCHING
-function switchPage(id,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');el.classList.add('active');}
-
-// AGENT
-const AL=[
-  {m:"SCANNING ARC TESTNET FOR PURCHASE ORDERS...",t:"dim"},
-  {m:"BLOCK CONFIRMED // ESCROW BALANCES VERIFIED",t:""},
-  {m:"CHECKING DELIVERY CONDITIONS...",t:"dim"},
-  {m:"ARC RPC RESPONDING // LATENCY: 38MS",t:"dim"},
-  {m:"USDC ESCROW INTEGRITY OK // FUNDS SECURED",t:""},
-  {m:"CCTP ROUTES AVAILABLE // MULTICHAIN READY",t:""},
-  {m:"USYC YIELD ACCRUING ON LOCKED ESCROW // +4.75% APR",t:""},
-  {m:"TRADEPROOF SCORE ENGINE ACTIVE",t:""},
-  {m:"AGENT HEARTBEAT // ALL SYSTEMS NOMINAL",t:""},
-];let ai=0;
-
-function addLog(msg,type=""){
-  const log=document.getElementById("agentLog");const now=new Date();
-  const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-  const el=document.createElement("div");el.className="t-line";
-  el.innerHTML=`<span class="t-time">${t}</span><span class="t-prompt">$</span><span class="t-msg ${type}">${msg}</span>`;
-  log.insertBefore(el,log.firstChild);if(log.children.length>25)log.removeChild(log.lastChild);
-  document.getElementById("agentLog2").textContent=msg;
-}
-
-function startAgent(){
-  document.getElementById("agentStatus").textContent="ACTIVE // MONITORING ARC TESTNET";
-  setInterval(()=>{const i=AL[ai%AL.length];addLog(i.m,i.t);ai++;},4000);
-}
-
-// YIELD CALC
-function calcYield(){
-  const amt=parseFloat(document.getElementById("calcAmount").value)||0;
-  const days=parseFloat(document.getElementById("calcDays").value)||0;
-  const daily=amt*0.0475/365;
-  const total=daily*days;
-  document.getElementById("calcDaily").textContent="$"+daily.toFixed(2);
-  document.getElementById("calcTotal").textContent="$"+total.toFixed(2);
-  document.getElementById("calcAPY").textContent="4.75%";
-}
-
-// CCTP ROUTE BUILDER
-const CHAINS={ethereum:{name:"Ethereum",fee:"$2.50",time:"~2min"},arc:{name:"Arc",fee:"$0.001",time:"<1s"},solana:{name:"Solana",fee:"$0.10",time:"~30s"},base:{name:"Base",fee:"$0.05",time:"~30s"},polygon:{name:"Polygon",fee:"$0.01",time:"~45s"}};
-
-function buildRoute(){
-  const src=document.getElementById("srcChain").value;
-  const dst=document.getElementById("dstChain").value;
-  const amt=parseFloat(document.getElementById("routeAmount").value)||1000;
-  const srcChain=CHAINS[src];const dstChain=CHAINS[dst];
-  let pathHTML="";
-  let nodes=[];
-  if(src==="arc"||dst==="arc"){
-    nodes=[{label:"USDC",chain:srcChain.name,cls:"rp-active"},{label:"CCTP BURN",chain:"Circle Protocol",cls:"rp-bridge"},{label:"USDC",chain:dstChain.name,cls:"rp-active"}];
-  }else{
-    nodes=[{label:"USDC",chain:srcChain.name,cls:"rp-active"},{label:"CCTP BURN",chain:"Source Chain",cls:"rp-bridge"},{label:"Arc",chain:"Settlement",cls:"rp-active"},{label:"CCTP MINT",chain:"Circle Protocol",cls:"rp-bridge"},{label:"USDC",chain:dstChain.name,cls:"rp-active"}];
-  }
-  nodes.forEach((n,i)=>{pathHTML+=`<div class="rp-node ${n.cls}"><div class="rp-box">${n.label}</div><div class="rp-chain">${n.chain}</div></div>${i<nodes.length-1?'<div class="rp-arrow">→</div>':""}`;});
-  const fee=parseFloat(srcChain.fee.replace("$",""))+parseFloat(dstChain.fee.replace("$",""));
-  const received=amt-fee;
-  document.getElementById("routePath").innerHTML=pathHTML;
-  document.getElementById("routeStats").innerHTML=`
-    <div class="rs-item"><div class="rs-val">$${received.toFixed(2)}</div><div class="rs-label">RECEIVED</div></div>
-    <div class="rs-item"><div class="rs-val">$${fee.toFixed(3)}</div><div class="rs-label">TOTAL FEE</div></div>
-    <div class="rs-item"><div class="rs-val">${src==="arc"||dst==="arc"?"<1s":"~3min"}</div><div class="rs-label">SETTLEMENT</div></div>
-    <div class="rs-item"><div class="rs-val">${(received/amt*100).toFixed(2)}%</div><div class="rs-label">EFFICIENCY</div></div>`;
-  document.getElementById("routeResult").style.display="block";
-}
-
-// WALLET
-async function connectWallet(){
-  if(!window.ethereum){showToast("e","NO WALLET","Install MetaMask.");return;}
-  try{
-    showToast("l","CONNECTING...","Requesting wallet access.");
-    await window.ethereum.request({method:"eth_requestAccounts"});
-    const cid=await window.ethereum.request({method:"eth_chainId"});
-    if(parseInt(cid,16)!==CID){
-      try{await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x"+CID.toString(16)}]});}
-      catch{await window.ethereum.request({method:"wallet_addEthereumChain",params:[{chainId:"0x"+CID.toString(16),chainName:"Arc Testnet",nativeCurrency:{name:"USDC",symbol:"USDC",decimals:18},rpcUrls:[RPC],blockExplorerUrls:["https://testnet.arcscan.app"]}]});}
-    }
-    provider=new ethers.BrowserProvider(window.ethereum);signer=await provider.getSigner();userAddress=await signer.getAddress();
-    contract=new ethers.Contract(CA,ABI,signer);uc=new ethers.Contract(UA,UABI,signer);
-    const s=`${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
-    document.getElementById("walletTag").style.display="flex";document.getElementById("walletTag").textContent=s;
-    document.getElementById("connectBtn").textContent="CONNECTED";document.getElementById("connectBtn").disabled=true;
-    showToast("s","CONNECTED",`${s} // Arc Testnet`);addLog(`WALLET CONNECTED: ${s}`,"");
-    await loadDashboard();renderForm();
-  }catch(e){showToast("e","FAILED",e.message.slice(0,80));}
-}
-
-async function loadDashboard(){
-  try{
-    const rp=new ethers.JsonRpcProvider(RPC),rc=new ethers.Contract(CA,ABI,rp);
-    const count=await rc.orderCount();document.getElementById("totalOrders").textContent=count.toString();
-    addLog(`FOUND ${count} ORDERS ON ARC`,"");
-    allOrders=[];let vol=0n;let funded=0;
-    for(let i=1;i<=Number(count);i++){const o=await rc.getOrder(i);allOrders.push(o);if(Number(o[6])===3)vol+=o[3];if(Number(o[6])===1)funded++;}
-    const volUSDC=parseFloat(ethers.formatUnits(vol,6));
-    document.getElementById("totalVolume").textContent="$"+volUSDC.toFixed(2);
-    // Simulate yield: avg 7 days per completed order
-    const yieldEarned=(volUSDC*0.0475/365*7).toFixed(4);
-    document.getElementById("yieldEarned").textContent="$"+yieldEarned;
-    document.getElementById("totalYield").textContent="$"+yieldEarned;
-    document.getElementById("activeEscrows").textContent=funded;
-    if(userAddress){
-      const[sc]=await rc.getCreditProfile(userAddress);const s=Number(sc);
-      document.getElementById("myScore").textContent=s;
-    }
-    renderOrders(allOrders,cf);
-  }catch(e){addLog("ERROR: "+e.message.slice(0,50),"warn");}
-}
-
-function fo(f,el){cf=f;document.querySelectorAll(".ptab").forEach(t=>t.classList.remove("on"));el.classList.add("on");renderOrders(allOrders,f);}
-
-function renderOrders(orders,filter){
-  const c=document.getElementById("ordersContainer");
-  const filtered=filter==='all'?orders:orders.filter(o=>SM[Number(o[6])]===filter);
-  if(!filtered.length){c.innerHTML=`<div class="empty-box"><div class="empty-n">${String(allOrders.length).padStart(2,'0')}</div><div class="empty-t">NO ${filter==='all'?'':filter.toUpperCase()+' '}ORDERS</div></div>`;return;}
-  c.innerHTML="";[...filtered].reverse().forEach(o=>{
-    const st=SM[Number(o[6])]||"Unknown";const amt=ethers.formatUnits(o[3],6);
-    const dt=new Date(Number(o[7])*1000).toLocaleDateString();
-    const sB=o[1].slice(0,6)+"..."+o[1].slice(-4);const sS=o[2].slice(0,6)+"..."+o[2].slice(-4);
-    const iB=userAddress&&o[1].toLowerCase()===userAddress.toLowerCase();
-    let acts="";
-    if(iB){
-      if(st==="Created")acts+=`<button class="oa-btn oab-fund" onclick="fundOrder(${o[0]})">FUND ESCROW</button>`;
-      if(st==="Funded")acts+=`<button class="oa-btn oab-confirm" onclick="confirmDelivery(${o[0]})">CONFIRM DELIVERY</button><button class="oa-btn oab-dispute" onclick="raiseDispute(${o[0]})">DISPUTE</button>`;
-    }
-    c.innerHTML+=`<div class="order-card oc-${st.toLowerCase()}"><div class="oc-stripe"></div><div class="oc-top"><span class="oc-id">PO_${String(Number(o[0])).padStart(4,'0')} // ${dt}</span><span class="badge b-${st.toLowerCase()}">${st}</span></div><div class="oc-desc">${o[4]}</div><div class="oc-meta"><span>💰 ${amt} USDC</span><span>B: ${sB}</span><span>S: ${sS}</span></div>${acts?`<div class="oc-actions">${acts}</div>`:""}</div>`;
-  });
-}
-
-function renderForm(){
-  document.getElementById("createArea").innerHTML=`<div class="form-body">
-    <div class="fg"><label class="fl">Supplier Wallet</label><input class="fi" id="supplier" placeholder="0x..."/></div>
-    <div class="fg"><label class="fl">USDC Amount</label><input class="fi" id="amount" type="number" placeholder="100"/></div>
-    <div class="fg"><label class="fl">Item Description</label><textarea class="fi" id="itemDesc" placeholder="e.g. 500kg raw cashew nuts"></textarea></div>
-    <div class="fg"><label class="fl">Delivery Condition</label><input class="fi" id="deliveryCond" placeholder="e.g. GPS confirmed delivery..."/></div>
-    <button class="submit-btn" onclick="createOrder()">CREATE SMART PO <span>→</span></button>
-  </div>`;
-}
-
-async function createOrder(){
-  try{
-    const supplier=document.getElementById("supplier").value.trim();
-    const amount=document.getElementById("amount").value.trim();
-    const desc=document.getElementById("itemDesc").value.trim();
-    const cond=document.getElementById("deliveryCond").value.trim();
-    if(!supplier||!amount||!desc||!cond){showToast("e","MISSING FIELDS","Fill all fields.");return;}
-    showToast("l","CREATING PO...","Sending to Arc.");addLog(`CREATING PO // ${amount} USDC`,"warn");
-    const tx=await contract.createOrder(supplier,ethers.parseUnits(amount,6),desc,cond);
-    showToast("l","CONFIRMING...","Awaiting Arc block.");const receipt=await tx.wait();
-    showToast("s","PO CREATED",`TX: ${receipt.hash.slice(0,12)}...`);addLog(`PO CREATED // TX: ${receipt.hash.slice(0,10)}`,"");await loadDashboard();
-  }catch(e){showToast("e","FAILED",e.message.slice(0,80));}
-}
-
-async function fundOrder(orderId){
-  try{
-    showToast("l","APPROVING...","Approving USDC escrow.");const o=await contract.getOrder(orderId);
-    const at=await uc.approve(CA,o[3]);await at.wait();
-    showToast("l","FUNDING...","Locking USDC on Arc.");addLog(`LOCKING ${ethers.formatUnits(o[3],6)} USDC IN ESCROW`,"warn");
-    const tx=await contract.fundOrder(orderId);await tx.wait();
-    showToast("s","ESCROW FUNDED",`${ethers.formatUnits(o[3],6)} USDC locked.`);addLog(`ORDER #${orderId} FUNDED`,"");await loadDashboard();
-  }catch(e){showToast("e","FAILED",e.message.slice(0,80));}
-}
-
-async function confirmDelivery(orderId){
-  try{
-    showToast("l","CONFIRMING...","Agent releasing payment.");addLog(`AGENT: CONFIRMING DELIVERY #${orderId}`,"warn");
-    const tx=await contract.confirmDelivery(orderId);await tx.wait();
-    showToast("s","PAYMENT RELEASED","USDC sent. Score updated.");addLog(`ORDER #${orderId} COMPLETE // USDC RELEASED`,"");await loadDashboard();
-  }catch(e){showToast("e","FAILED",e.message.slice(0,80));}
-}
-
-async function raiseDispute(orderId){
-  try{
-    showToast("l","DISPUTING...","Flagging order.");const tx=await contract.raiseDispute(orderId);await tx.wait();
-    showToast("s","DISPUTE RAISED","Funds held.");addLog(`DISPUTE #${orderId} // FUNDS HELD`,"warn");await loadDashboard();
-  }catch(e){showToast("e","FAILED",e.message.slice(0,80));}
-}
-
-async function lookupCredit(){
-  const addr=document.getElementById("creditAddr").value.trim();if(!addr)return;
-  try{
-    const rp=new ethers.JsonRpcProvider(RPC),rc=new ethers.Contract(CA,ABI,rp);
-    const[score,volume]=await rc.getCreditProfile(addr);
-    const s=Number(score),vol=ethers.formatUnits(volume,6);
-    const level=s>=50?"GOLD":s>=20?"SILVER":s>=5?"BRONZE":"NEW";
-    const colors={GOLD:"var(--amber)",SILVER:"#94a3b8",BRONZE:"#cd7f32",NEW:"var(--g7)"}[level];
-    const pct=Math.min(100,(s/50)*100);
-    document.getElementById("creditResult").innerHTML=`
-      <div class="cr-display">
-        <div class="cr-big-num" style="color:${colors}">${s}</div>
-        <div class="cr-level" style="color:${colors}">${level} TRADER</div>
-        <div class="cr-vol">${vol} USDC SETTLED</div>
-        <div class="cr-progress"><div class="cr-progress-fill" style="width:${pct}%;background:${colors}"></div></div>
-        <div class="cr-progress-labels"><span>NEW</span><span>BRONZE</span><span>SILVER</span><span>GOLD</span></div>
-      </div>`;
-    addLog(`CREDIT: ${addr.slice(0,6)}... // SCORE: ${s} (${level})`,"");
-  }catch(e){document.getElementById("creditResult").innerHTML=`<div style="color:var(--pink);font-size:9px;padding:10px 0;font-family:'Space Mono'">ERROR: ${e.message.slice(0,60)}</div>`;}
-}
-
-async function fullCreditCheck(){
-  const addr=document.getElementById("fullCreditAddr").value.trim();if(!addr)return;
-  try{
-    const rp=new ethers.JsonRpcProvider(RPC),rc=new ethers.Contract(CA,ABI,rp);
-    const[score,volume]=await rc.getCreditProfile(addr);
-    const s=Number(score),vol=parseFloat(ethers.formatUnits(volume,6));
-    const level=s>=50?"GOLD":s>=20?"SILVER":s>=5?"BRONZE":"NEW";
-    const multipliers={GOLD:3,SILVER:2,BRONZE:1.5,NEW:0.5};
-    const rates={GOLD:"8",SILVER:"12",BRONZE:"18",NEW:"24"};
-    const maxCredit=(vol*multipliers[level]).toFixed(2);
-    document.getElementById("fcr-score").textContent=s;
-    document.getElementById("fcr-vol").textContent="$"+vol.toFixed(2);
-    document.getElementById("fcr-level").textContent=level;
-    document.getElementById("fcr-limit").textContent="$"+maxCredit;
-    document.getElementById("db-rate").textContent=rates[level]+"%";
-    const approved=s>=5;
-    const banner=document.getElementById("decisionBanner");
-    banner.className="decision-banner "+(approved?"db-approved":s>0?"db-review":"db-declined");
-    document.getElementById("db-verdict").textContent=approved?"APPROVED":s>0?"REVIEW":"DECLINED";
-    document.getElementById("db-detail").textContent=approved?`Max ${maxCredit} USDC available at ${rates[level]}% APR`:"Insufficient onchain trade history";
-    document.getElementById("fullCreditResult").style.display="block";
-    addLog(`CREDIT ASSESSMENT: ${addr.slice(0,6)}... // ${approved?"APPROVED":"DECLINED"}`,"");
-  }catch(e){showToast("e","ERROR",e.message.slice(0,60));}
-}
-
-function showToast(type,title,msg){
-  const ex=document.querySelector(".toast");if(ex)ex.remove();
-  const t=document.createElement("div");t.className=`toast ${type}`;
-  t.innerHTML=`<div class="toast-title">${type==='l'?'<span class="spin"></span>':''}${title}</div><div class="toast-msg">${msg}</div>`;
-  document.getElementById("tc").appendChild(t);if(type!=="l")setTimeout(()=>t.remove(),4000);
-}
-
-window.addEventListener("load",()=>{
-  startAgent();calcYield();
-  const rp=new ethers.JsonRpcProvider(RPC),rc=new ethers.Contract(CA,ABI,rp);
-  rc.orderCount().then(count=>{
-    document.getElementById("totalOrders").textContent=count.toString();
-    for(let i=1;i<=Number(count);i++){rc.getOrder(i).then(o=>{allOrders.push(o);renderOrders(allOrders,cf);const vol=allOrders.filter(o=>Number(o[6])===3).reduce((s,o)=>s+BigInt(o[3]),0n);document.getElementById("totalVolume").textContent="$"+parseFloat(ethers.formatUnits(vol,6)).toFixed(2);});}
-    if(Number(count)===0)renderOrders([],cf);
-  }).catch(()=>{});
-});
-</script>
 </body>
 </html>
