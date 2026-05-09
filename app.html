@@ -4,330 +4,1249 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TradeProof | Agentic Procurement Protocol</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
 <style>
-:root{--bg:#020408;--bg2:#040810;--bg3:#060d18;--card:#050b14;--border:#0d2137;--border2:#0a3d5c;--cyan:#00f5ff;--cyan2:#00bcd4;--purple:#7c3aed;--purple2:#a855f7;--green:#00ff88;--red:#ff3366;--yellow:#ffd700;--text:#c8d8e8;--muted:#3d6080;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;}
-.bg-canvas{position:fixed;inset:0;z-index:0;overflow:hidden;}
-.bg-canvas::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(0,245,255,0.04) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(124,58,237,0.04) 0%,transparent 60%);}
-.grid-lines{position:absolute;inset:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:60px 60px;animation:gp 8s ease-in-out infinite;}
-@keyframes gp{0%,100%{opacity:.5}50%{opacity:1}}
-.scanline{position:absolute;width:100%;height:2px;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.4),transparent);animation:scan 6s linear infinite;top:-2px;}
-@keyframes scan{0%{top:-2px}100%{top:100vh}}
-.node{position:absolute;border-radius:50%;animation:np 3s ease-in-out infinite;}
-@keyframes np{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.5);opacity:.8}}
-header{position:sticky;top:0;z-index:100;background:rgba(2,4,8,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);padding:0 2rem;height:68px;display:flex;align-items:center;justify-content:space-between;}
-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),var(--purple2),transparent);opacity:.6;}
-.logo{display:flex;align-items:center;gap:14px;}
-.logo-mark{width:40px;height:40px;border:1px solid var(--cyan);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;color:var(--cyan);box-shadow:0 0 20px rgba(0,245,255,.3),inset 0 0 20px rgba(0,245,255,.05);}
-.logo-name{font-family:'Orbitron',sans-serif;font-weight:700;font-size:18px;letter-spacing:2px;}
-.logo-name span{color:var(--cyan);}
-.logo-tag{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
-.header-right{display:flex;align-items:center;gap:16px;}
-.net-badge{display:flex;align-items:center;gap:6px;padding:5px 14px;border:1px solid rgba(0,255,136,.3);border-radius:20px;font-size:10px;color:var(--green);letter-spacing:1px;background:rgba(0,255,136,.04);}
-.net-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;box-shadow:0 0 6px var(--green);}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
-.wallet-pill{padding:6px 14px;border:1px solid var(--border2);border-radius:6px;font-size:11px;color:var(--cyan2);background:rgba(0,188,212,.05);display:none;letter-spacing:1px;}
-.btn{padding:9px 22px;border-radius:6px;border:none;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;transition:all .2s;position:relative;overflow:hidden;}
-.btn-cyan{background:transparent;border:1px solid var(--cyan);color:var(--cyan);box-shadow:0 0 15px rgba(0,245,255,.2);}
-.btn-cyan:hover{background:rgba(0,245,255,.1);box-shadow:0 0 20px rgba(0,245,255,.3);transform:translateY(-1px);}
-.btn-green{background:transparent;border:1px solid var(--green);color:var(--green);font-family:'Share Tech Mono',monospace;cursor:pointer;padding:5px 12px;font-size:9px;letter-spacing:1px;}
-.btn-green:hover{background:rgba(0,255,136,.1);}
-.btn-red{background:transparent;border:1px solid var(--red);color:var(--red);font-family:'Share Tech Mono',monospace;cursor:pointer;padding:5px 12px;font-size:9px;letter-spacing:1px;}
-.btn-sm{padding:5px 12px;font-size:9px;}
-main{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:2rem;}
-.agent-bar{border:1px solid rgba(0,245,255,.2);border-radius:10px;padding:18px 24px;margin-bottom:2rem;background:linear-gradient(135deg,rgba(0,245,255,.03),rgba(124,58,237,.03));display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:relative;overflow:hidden;}
-.agent-bar::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation:bs 4s ease-in-out infinite;}
-@keyframes bs{0%,100%{opacity:.3}50%{opacity:1}}
-.agent-left{display:flex;align-items:center;gap:16px;}
-.agent-avatar{width:44px;height:44px;border:1px solid var(--cyan);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:rgba(0,245,255,.05);box-shadow:0 0 15px rgba(0,245,255,.15);position:relative;}
-.agent-avatar::after{content:'';position:absolute;inset:-3px;border-radius:12px;border:1px solid rgba(0,245,255,.2);animation:spin 8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.agent-info h3{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--cyan);letter-spacing:1px;margin-bottom:3px;}
-.agent-info p{font-size:10px;color:var(--muted);}
-.agent-live-log{font-size:10px;color:var(--green);max-width:500px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 12px;border:1px solid rgba(0,255,136,.2);border-radius:4px;background:rgba(0,255,136,.03);}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;position:relative;overflow:hidden;transition:border-color .3s;}
-.stat-card:hover{border-color:var(--border2);}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.stat-card:nth-child(1)::before{background:linear-gradient(90deg,var(--cyan),transparent);}
-.stat-card:nth-child(2)::before{background:linear-gradient(90deg,var(--green),transparent);}
-.stat-card:nth-child(3)::before{background:linear-gradient(90deg,var(--purple2),transparent);}
-.stat-card:nth-child(4)::before{background:linear-gradient(90deg,var(--yellow),transparent);}
-.stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;}
-.stat-value{font-family:'Orbitron',sans-serif;font-size:32px;font-weight:900;line-height:1;margin-bottom:6px;}
-.cv{color:var(--cyan);text-shadow:0 0 20px rgba(0,245,255,.5);}
-.gv{color:var(--green);text-shadow:0 0 20px rgba(0,255,136,.5);}
-.pv{color:var(--purple2);text-shadow:0 0 20px rgba(168,85,247,.5);}
-.yv{color:var(--yellow);text-shadow:0 0 20px rgba(255,215,0,.5);}
-.stat-sub{font-size:9px;color:var(--muted);}
-.main-grid{display:grid;grid-template-columns:1fr 380px;gap:1.5rem;align-items:start;}
-.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.panel-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(0,245,255,.02);}
-.panel-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--cyan);}
-.panel-body{padding:22px;}
-.tabs{display:flex;gap:4px;}
-.tab{padding:5px 14px;border-radius:4px;font-size:9px;cursor:pointer;border:1px solid transparent;color:var(--muted);background:none;font-family:'Share Tech Mono',monospace;letter-spacing:1px;transition:all .2s;}
-.tab.active{border-color:rgba(0,245,255,.3);color:var(--cyan);background:rgba(0,245,255,.05);}
-.order-item{border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:10px;background:var(--bg3);transition:all .2s;animation:fi .3s ease;position:relative;overflow:hidden;}
-@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.order-item:hover{border-color:rgba(0,245,255,.2);}
-.order-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;}
-.sc::before{background:var(--cyan2);}.sf::before{background:var(--yellow);}.sco::before{background:var(--green);}.sd::before{background:var(--red);}
-.order-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.order-id{font-size:10px;color:var(--muted);}
-.badge{padding:2px 10px;border-radius:3px;font-size:9px;letter-spacing:1px;text-transform:uppercase;}
-.bc{border:1px solid rgba(0,188,212,.4);color:var(--cyan2);background:rgba(0,188,212,.08);}
-.bf{border:1px solid rgba(255,215,0,.4);color:var(--yellow);background:rgba(255,215,0,.08);}
-.bco{border:1px solid rgba(0,255,136,.4);color:var(--green);background:rgba(0,255,136,.08);}
-.bd{border:1px solid rgba(255,51,102,.4);color:var(--red);background:rgba(255,51,102,.08);}
-.bca{border:1px solid rgba(61,96,128,.4);color:var(--muted);background:rgba(61,96,128,.08);}
-.order-desc{font-size:12px;color:var(--text);margin-bottom:8px;}
-.order-meta{display:flex;gap:16px;font-size:10px;color:var(--muted);flex-wrap:wrap;}
-.order-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
-.sidebar{display:flex;flex-direction:column;gap:1.5rem;}
-.form-group{margin-bottom:14px;}
-.form-label{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-.form-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;transition:border-color .2s;outline:none;}
-.form-input:focus{border-color:rgba(0,245,255,.4);box-shadow:0 0 10px rgba(0,245,255,.1);}
-.form-input::placeholder{color:var(--muted);}
-textarea.form-input{resize:vertical;min-height:60px;}
-.log-entries{max-height:200px;overflow-y:auto;padding:16px 22px;}
-.log-entry{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:10px;animation:fi .2s ease;}
-.log-entry:last-child{border-bottom:none;}
-.log-time{color:var(--cyan);min-width:65px;opacity:.7;}
-.log-msg{color:var(--green);}
-.log-msg.info{color:var(--muted);}
-.log-msg.warn{color:var(--yellow);}
-.score-ring{width:90px;height:90px;margin:0 auto 14px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
-.score-inner{width:68px;height:68px;background:var(--card);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.score-num{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;line-height:1;}
-.score-lbl{font-size:8px;color:var(--muted);letter-spacing:1px;}
-.credit-display{text-align:center;padding:16px 0;}
-.credit-level{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;}
-.empty-state{text-align:center;padding:48px 24px;color:var(--muted);}
-.empty-icon{font-size:36px;margin-bottom:12px;opacity:.5;}
-.empty-state p{font-size:11px;letter-spacing:1px;}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:16px 20px;z-index:999;max-width:360px;animation:ti .3s ease;box-shadow:0 20px 60px rgba(0,0,0,.7);}
-@keyframes ti{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.toast-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;margin-bottom:4px;letter-spacing:1px;}
-.toast-msg{font-size:10px;color:var(--muted);}
-.toast.success{border-color:rgba(0,255,136,.4);}.toast.success .toast-title{color:var(--green);}
-.toast.error{border-color:rgba(255,51,102,.4);}.toast.error .toast-title{color:var(--red);}
-.toast.loading{border-color:rgba(0,245,255,.3);}.toast.loading .toast-title{color:var(--cyan);}
-.spinner{display:inline-block;width:10px;height:10px;border:2px solid var(--border2);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle;}
-.live-badge{font-size:9px;color:var(--green);border:1px solid rgba(0,255,136,.3);padding:2px 8px;border-radius:3px;letter-spacing:1px;animation:pulse 2s infinite;}
-.connect-msg{font-size:11px;color:var(--muted);text-align:center;padding:24px;letter-spacing:1px;}
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-@media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr);}.main-grid{grid-template-columns:1fr;}}
+:root {
+  --void: #03070d;
+  --deep: #060e1a;
+  --surface: #0a1628;
+  --raised: #0e1e35;
+  --elevated: #122440;
+  --border: rgba(180,150,80,0.12);
+  --border2: rgba(180,150,80,0.25);
+  --border3: rgba(180,150,80,0.45);
+  --gold: #c9a84c;
+  --gold2: #e8c97e;
+  --gold3: #f5dfa0;
+  --goldglow: rgba(201,168,76,0.15);
+  --silver: #8fa8c8;
+  --green: #2dd4a0;
+  --red: #e05572;
+  --text: #d4e4f7;
+  --muted: #4a6a8a;
+  --dim: #2a4060;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { font-size: 16px; }
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* PREMIUM BACKGROUND */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bg-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px;
+}
+
+.bg-gradient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 120% 60% at 0% 0%, rgba(201,168,76,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 80% at 100% 100%, rgba(45,212,160,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(10,22,40,0.8) 0%, transparent 100%);
+}
+
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 100% 100% at 50% 0%, black 0%, transparent 70%);
+}
+
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: orbFloat 12s ease-in-out infinite;
+}
+
+.orb1 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(201,168,76,0.08), transparent 70%);
+  top: -200px; left: -200px;
+  animation-delay: 0s;
+}
+
+.orb2 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(45,212,160,0.05), transparent 70%);
+  bottom: -150px; right: -150px;
+  animation-delay: -6s;
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(30px,-20px) scale(1.05); }
+  66% { transform: translate(-20px,30px) scale(0.95); }
+}
+
+/* HEADER */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 3rem;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(3,7,13,0.7);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.4;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo-emblem {
+  width: 42px; height: 42px;
+  border: 1px solid var(--border3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-emblem::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(201,168,76,0.1));
+}
+
+.logo-emblem-text {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 15px;
+  color: var(--gold);
+  position: relative;
+  z-index: 1;
+}
+
+.logo-wordmark {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.logo-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.logo-name em {
+  color: var(--gold);
+  font-style: normal;
+}
+
+.logo-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: rgba(10,22,40,0.6);
+}
+
+.net-indicator {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--green);
+  animation: netPulse 2s infinite;
+}
+
+@keyframes netPulse { 0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:0.4;box-shadow:0 0 4px var(--green)} }
+
+.net-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--silver);
+  letter-spacing: 1.5px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wallet-display {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--gold);
+  padding: 6px 14px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  background: rgba(201,168,76,0.05);
+  display: none;
+  letter-spacing: 0.5px;
+}
+
+.btn-connect {
+  padding: 9px 24px;
+  background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.08));
+  border: 1px solid var(--border3);
+  border-radius: 9px;
+  color: var(--gold2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-transform: uppercase;
+}
+
+.btn-connect:hover {
+  background: linear-gradient(135deg, rgba(201,168,76,0.25), rgba(201,168,76,0.12));
+  border-color: var(--gold);
+  box-shadow: 0 0 24px rgba(201,168,76,0.15);
+  transform: translateY(-1px);
+}
+
+/* MAIN */
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2.5rem 3rem 4rem;
+}
+
+/* AGENT STATUS */
+.agent-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(201,168,76,0.06), rgba(45,212,160,0.03));
+  margin-bottom: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.agent-banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--green), transparent);
+  opacity: 0.5;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer { 0%,100%{opacity:0.3}50%{opacity:0.8} }
+
+.agent-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.agent-orb {
+  width: 48px; height: 48px;
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(45,212,160,0.05));
+  position: relative;
+}
+
+.agent-orb::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 18px;
+  border: 1px solid rgba(201,168,76,0.15);
+  animation: agentSpin 10s linear infinite;
+}
+
+@keyframes agentSpin { to { transform: rotate(360deg); } }
+
+.agent-info-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gold2);
+  margin-bottom: 3px;
+}
+
+.agent-info-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+.agent-log-live {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--green);
+  max-width: 480px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 5px 14px;
+  border: 1px solid rgba(45,212,160,0.2);
+  border-radius: 6px;
+  background: rgba(45,212,160,0.04);
+  letter-spacing: 0.5px;
+}
+
+/* STATS */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.stat-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, transform 0.2s;
+  cursor: default;
+}
+
+.stat-tile:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+}
+
+.stat-tile::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  border-radius: 3px 0 0 3px;
+}
+
+.stat-tile:nth-child(1)::before { background: linear-gradient(180deg, var(--gold), transparent); }
+.stat-tile:nth-child(2)::before { background: linear-gradient(180deg, var(--green), transparent); }
+.stat-tile:nth-child(3)::before { background: linear-gradient(180deg, var(--silver), transparent); }
+.stat-tile:nth-child(4)::before { background: linear-gradient(180deg, var(--gold2), transparent); }
+
+.stat-tile-glow {
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  opacity: 0.06;
+  filter: blur(20px);
+}
+
+.t1-glow { background: var(--gold); }
+.t2-glow { background: var(--green); }
+.t3-glow { background: var(--silver); }
+.t4-glow { background: var(--gold2); }
+
+.stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.sv-gold { color: var(--gold2); }
+.sv-green { color: var(--green); }
+.sv-silver { color: var(--silver); }
+.sv-gold3 { color: var(--gold3); font-size: 22px; padding-top: 8px; }
+
+.stat-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+
+/* MAIN GRID */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* PANEL */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+}
+
+.panel-head {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, var(--raised), var(--surface));
+}
+
+.panel-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-title-accent {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.panel-body { padding: 24px 28px; }
+
+/* TABS */
+.tab-row { display: flex; gap: 4px; }
+.tab-btn {
+  padding: 6px 16px;
+  border-radius: 7px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: var(--muted);
+  background: none;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.tab-btn.active {
+  background: rgba(201,168,76,0.08);
+  border-color: var(--border2);
+  color: var(--gold2);
+}
+
+/* ORDER CARDS */
+.order-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  margin-bottom: 10px;
+  background: var(--deep);
+  transition: all 0.2s;
+  animation: cardIn 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes cardIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+.order-card:hover {
+  border-color: var(--border2);
+  background: var(--raised);
+}
+
+.order-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.order-id {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.status-pill {
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.sp-created { border: 1px solid rgba(143,168,200,0.3); color: var(--silver); background: rgba(143,168,200,0.06); }
+.sp-funded { border: 1px solid rgba(201,168,76,0.3); color: var(--gold2); background: rgba(201,168,76,0.06); }
+.sp-completed { border: 1px solid rgba(45,212,160,0.3); color: var(--green); background: rgba(45,212,160,0.06); }
+.sp-disputed { border: 1px solid rgba(224,85,114,0.3); color: var(--red); background: rgba(224,85,114,0.06); }
+.sp-cancelled { border: 1px solid rgba(74,106,138,0.3); color: var(--muted); background: rgba(74,106,138,0.06); }
+
+.order-desc {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 10px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.order-meta {
+  display: flex;
+  gap: 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.order-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* BUTTONS */
+.btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.1));
+  border: 1px solid var(--border3);
+  color: var(--gold2);
+}
+
+.btn-gold:hover { background: linear-gradient(135deg, rgba(201,168,76,0.3), rgba(201,168,76,0.15)); box-shadow: 0 4px 20px rgba(201,168,76,0.15); }
+
+.btn-green {
+  background: rgba(45,212,160,0.1);
+  border: 1px solid rgba(45,212,160,0.3);
+  color: var(--green);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 8px 18px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.btn-green:hover { background: rgba(45,212,160,0.15); }
+
+.btn-red {
+  background: rgba(224,85,114,0.08);
+  border: 1px solid rgba(224,85,114,0.25);
+  color: var(--red);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 8px 18px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+/* SIDEBAR */
+.sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* FORM */
+.form-group { margin-bottom: 16px; }
+
+.form-label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--deep);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 11px 15px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--border3);
+  background: var(--raised);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.06);
+}
+
+.form-input::placeholder { color: var(--dim); }
+textarea.form-input { resize: vertical; min-height: 64px; }
+
+.btn-full {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(201,168,76,0.18), rgba(201,168,76,0.08));
+  border: 1px solid var(--border3);
+  border-radius: 10px;
+  color: var(--gold2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-full::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,0.12), transparent);
+  transition: left 0.5s;
+}
+
+.btn-full:hover::before { left: 100%; }
+.btn-full:hover { box-shadow: 0 6px 30px rgba(201,168,76,0.12); transform: translateY(-1px); }
+
+/* CREDIT SCORE */
+.credit-display { text-align: center; padding: 20px 0; }
+
+.credit-ring {
+  width: 100px; height: 100px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.credit-inner {
+  width: 76px; height: 76px;
+  background: var(--surface);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.credit-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.credit-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 7px;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+
+.credit-level-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.credit-vol {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* AGENT LOG */
+.log-scroll { max-height: 220px; overflow-y: auto; padding: 20px 28px; }
+.log-scroll::-webkit-scrollbar { width: 3px; }
+.log-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.log-row {
+  display: flex;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  animation: cardIn 0.2s ease;
+}
+
+.log-row:last-child { border-bottom: none; }
+.log-t { color: var(--gold); min-width: 65px; opacity: 0.6; }
+.log-m { color: var(--green); letter-spacing: 0.3px; }
+.log-m.info { color: var(--muted); }
+.log-m.warn { color: var(--gold2); }
+
+/* EMPTY */
+.empty {
+  text-align: center;
+  padding: 56px 24px;
+  color: var(--muted);
+}
+
+.empty-icon { font-size: 40px; margin-bottom: 14px; opacity: 0.3; }
+.empty-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 1.5px; }
+
+/* LIVE BADGE */
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--green);
+  letter-spacing: 1.5px;
+}
+
+.live-dot {
+  width: 5px; height: 5px;
+  background: var(--green);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--green);
+  animation: netPulse 1.5s infinite;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  background: var(--raised);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  z-index: 999;
+  max-width: 380px;
+  animation: toastIn 0.3s ease;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+  backdrop-filter: blur(20px);
+}
+
+@keyframes toastIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+.toast-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.toast-msg {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+}
+
+.toast.success { border-color: rgba(45,212,160,0.4); }
+.toast.success .toast-title { color: var(--green); }
+.toast.error { border-color: rgba(224,85,114,0.4); }
+.toast.error .toast-title { color: var(--red); }
+.toast.loading { border-color: rgba(201,168,76,0.3); }
+.toast.loading .toast-title { color: var(--gold2); }
+
+.spinner {
+  display: inline-block;
+  width: 11px; height: 11px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 7px;
+  vertical-align: middle;
+}
+
+@keyframes spin { to{transform:rotate(360deg)} }
+
+.connect-prompt {
+  text-align: center;
+  padding: 28px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  line-height: 1.8;
+}
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* RESPONSIVE */
+@media(max-width:1100px) {
+  .content-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  main { padding: 2rem 1.5rem; }
+  header { padding: 0 1.5rem; }
+}
 </style>
 </head>
 <body>
-<div class="bg-canvas">
-  <div class="grid-lines"></div>
-  <div class="scanline"></div>
-  <div class="node" style="width:4px;height:4px;background:var(--cyan);top:15%;left:10%;box-shadow:0 0 8px var(--cyan)"></div>
-  <div class="node" style="width:3px;height:3px;background:var(--purple2);top:40%;left:85%;animation-delay:1s;box-shadow:0 0 8px var(--purple2)"></div>
-  <div class="node" style="width:5px;height:5px;background:var(--green);top:70%;left:25%;animation-delay:2s;box-shadow:0 0 8px var(--green)"></div>
-  <div class="node" style="width:3px;height:3px;background:var(--cyan);top:25%;left:60%;animation-delay:.5s;box-shadow:0 0 8px var(--cyan)"></div>
-  <div class="node" style="width:4px;height:4px;background:var(--yellow);top:80%;left:70%;animation-delay:1.5s;box-shadow:0 0 8px var(--yellow)"></div>
+
+<div class="bg-layer">
+  <div class="bg-noise"></div>
+  <div class="bg-gradient"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
 </div>
+
 <header>
   <div class="logo">
-    <div class="logo-mark">TP</div>
-    <div>
-      <div class="logo-name">TRADE<span>PROOF</span></div>
-      <div class="logo-tag">AGENTIC PROCUREMENT PROTOCOL // ARC TESTNET</div>
+    <div class="logo-emblem">
+      <span class="logo-emblem-text">TP</span>
+    </div>
+    <div class="logo-wordmark">
+      <div class="logo-name">Trade<em>Proof</em></div>
+      <div class="logo-sub">Agentic Procurement Protocol</div>
     </div>
   </div>
+
+  <div class="header-center">
+    <div class="net-indicator"></div>
+    <span class="net-label">ARC TESTNET</span>
+  </div>
+
   <div class="header-right">
-    <div class="net-badge"><div class="net-dot"></div>ARC TESTNET</div>
-    <div class="wallet-pill" id="walletPill"></div>
-    <button class="btn btn-cyan" id="connectBtn" onclick="connectWallet()">CONNECT WALLET</button>
+    <div class="wallet-display" id="walletDisplay"></div>
+    <button class="btn-connect" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
   </div>
 </header>
+
 <main>
-  <div class="agent-bar">
+
+  <!-- AGENT BANNER -->
+  <div class="agent-banner">
     <div class="agent-left">
-      <div class="agent-avatar">🤖</div>
-      <div class="agent-info">
-        <h3>TRADEPROOF PROCUREMENT AGENT</h3>
-        <p id="agentStatusText">INITIALIZING // CONNECTING TO ARC TESTNET...</p>
+      <div class="agent-orb">🤖</div>
+      <div>
+        <div class="agent-info-title">TradeProof Procurement Agent</div>
+        <div class="agent-info-sub" id="agentStatus">INITIALIZING — CONNECTING TO ARC TESTNET</div>
       </div>
     </div>
-    <div class="agent-live-log" id="agentLiveLog">AWAITING ACTIVITY...</div>
+    <div class="agent-log-live" id="agentLive">Awaiting procurement activity...</div>
   </div>
-  <div class="stats-grid">
-    <div class="stat-card"><div class="stat-label">Total Orders // Arc</div><div class="stat-value cv" id="totalOrders">0</div><div class="stat-sub">Smart Purchase Orders</div></div>
-    <div class="stat-card"><div class="stat-label">USDC Settled // Arc</div><div class="stat-value gv" id="totalVolume">$0.00</div><div class="stat-sub">Via TradeProof Escrow</div></div>
-    <div class="stat-card"><div class="stat-label">Your TradeProof Score</div><div class="stat-value pv" id="myScore">--</div><div class="stat-sub" id="myLevel">Connect Wallet</div></div>
-    <div class="stat-card"><div class="stat-label">Agent Status</div><div class="stat-value yv" style="font-size:18px;padding-top:6px">ACTIVE</div><div class="stat-sub">Monitoring Arc Testnet</div></div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-tile">
+      <div class="stat-tile-glow t1-glow"></div>
+      <div class="stat-label">Total Orders — Arc</div>
+      <div class="stat-value sv-gold" id="totalOrders">0</div>
+      <div class="stat-sub">Smart Purchase Orders</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-glow t2-glow"></div>
+      <div class="stat-label">USDC Settled — Arc</div>
+      <div class="stat-value sv-green" id="totalVolume">$0.00</div>
+      <div class="stat-sub">Via TradeProof Escrow</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-glow t3-glow"></div>
+      <div class="stat-label">Your TradeProof Score</div>
+      <div class="stat-value sv-silver" id="myScore">—</div>
+      <div class="stat-sub" id="myLevel">Connect wallet to view</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-glow t4-glow"></div>
+      <div class="stat-label">Agent Status</div>
+      <div class="stat-value sv-gold3">ACTIVE</div>
+      <div class="stat-sub">Monitoring Arc Testnet</div>
+    </div>
   </div>
-  <div class="main-grid">
+
+  <!-- CONTENT GRID -->
+  <div class="content-grid">
+
+    <!-- LEFT -->
     <div>
+      <!-- ORDERS -->
       <div class="panel" style="margin-bottom:1.5rem">
-        <div class="panel-header">
-          <div class="panel-title">// PURCHASE ORDERS</div>
-          <div class="tabs">
-            <button class="tab active" onclick="filterOrders('all',this)">ALL</button>
-            <button class="tab" onclick="filterOrders('Funded',this)">FUNDED</button>
-            <button class="tab" onclick="filterOrders('Completed',this)">COMPLETED</button>
+        <div class="panel-head">
+          <div class="panel-title">
+            Purchase Orders
+            <span class="panel-title-accent">ON-CHAIN</span>
+          </div>
+          <div class="tab-row">
+            <button class="tab-btn active" onclick="filterOrders('all',this)">All</button>
+            <button class="tab-btn" onclick="filterOrders('Funded',this)">Funded</button>
+            <button class="tab-btn" onclick="filterOrders('Completed',this)">Completed</button>
           </div>
         </div>
-        <div class="panel-body"><div id="ordersContainer"><div class="empty-state"><div class="empty-icon">📋</div><p>NO ORDERS DETECTED // CREATE YOUR FIRST SMART PO</p></div></div></div>
+        <div class="panel-body">
+          <div id="ordersContainer">
+            <div class="empty">
+              <div class="empty-icon">📋</div>
+              <div class="empty-text">No orders detected — Create your first Smart PO</div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- LOG -->
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">// AGENT ACTIVITY LOG</div><div class="live-badge">LIVE</div></div>
-        <div class="log-entries" id="agentLog"><div class="log-entry"><span class="log-time">BOOT</span><span class="log-msg info">TRADEPROOF AGENT INITIALIZING ON ARC TESTNET...</span></div></div>
+        <div class="panel-head">
+          <div class="panel-title">Agent Activity Log</div>
+          <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        </div>
+        <div class="log-scroll" id="agentLog">
+          <div class="log-row">
+            <span class="log-t">BOOT</span>
+            <span class="log-m info">TradeProof Agent initializing on Arc Testnet...</span>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- SIDEBAR -->
     <div class="sidebar">
+
+      <!-- CREATE PO -->
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">// CREATE SMART PO</div></div>
-        <div class="panel-body" id="createFormArea"><div class="connect-msg">CONNECT WALLET TO CREATE PURCHASE ORDERS ON ARC</div></div>
+        <div class="panel-head">
+          <div class="panel-title">Create Smart PO</div>
+        </div>
+        <div class="panel-body" id="createFormArea">
+          <div class="connect-prompt">Connect your wallet to create<br>Purchase Orders on Arc Testnet</div>
+        </div>
       </div>
+
+      <!-- CREDIT -->
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">// TRADEPROOF SCORE</div></div>
+        <div class="panel-head">
+          <div class="panel-title">
+            TradeProof Score
+            <span class="panel-title-accent">CREDIT</span>
+          </div>
+        </div>
         <div class="panel-body">
-          <div class="form-group"><label class="form-label">Wallet Address</label><input class="form-input" id="creditAddress" placeholder="0x..."/></div>
-          <button class="btn btn-cyan" style="width:100%" onclick="lookupCredit()">CHECK CREDIT PROFILE</button>
+          <div class="form-group">
+            <label class="form-label">Wallet Address</label>
+            <input class="form-input" id="creditAddress" placeholder="0x..." />
+          </div>
+          <button class="btn-full" onclick="lookupCredit()">Check Credit Profile</button>
           <div id="creditResult" style="margin-top:16px"></div>
         </div>
       </div>
+
     </div>
   </div>
 </main>
+
 <div id="toastContainer"></div>
+
 <script>
-const CA="0x8400f55e0544c02e85d870FfB1ABf9c120CF4484",UA="0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",CID=5042002,RPC="https://rpc.testnet.arc.network";
+const CA="0x7194EB570e832FC55Af224D9001Af688c4fFa954";
+const UA="0x3600000000000000000000000000000000000000";
+const CID=5042002;
+const RPC="https://rpc.testnet.arc.network";
+
 const ABI=["function createOrder(address,uint256,string,string) external returns (uint256)","function fundOrder(uint256) external","function confirmDelivery(uint256) external","function raiseDispute(uint256) external","function getCreditProfile(address) external view returns (uint256,uint256)","function getOrder(uint256) external view returns (tuple(uint256,address,address,uint256,string,string,uint8,uint256,uint256))","function orderCount() external view returns (uint256)"];
 const UABI=["function approve(address,uint256) external returns (bool)","function balanceOf(address) external view returns (uint256)"];
 const SM=["Created","Funded","Delivered","Completed","Disputed","Cancelled"];
+
 let provider,signer,contract,usdcContract,userAddress,allOrders=[],currentFilter='all';
-const AL=[{m:"SCANNING ARC TESTNET FOR NEW PURCHASE ORDERS...",t:"info"},{m:"BLOCK CONFIRMED. MONITORING ESCROW BALANCES.",t:""},{m:"CHECKING DELIVERY CONDITIONS FOR ACTIVE ORDERS...",t:""},{m:"ARC TESTNET RPC RESPONDING. LATENCY: 43MS",t:"info"},{m:"USDC ESCROW INTEGRITY VERIFIED. ALL FUNDS SECURED.",t:""},{m:"CCTP CROSS-CHAIN ROUTES AVAILABLE.",t:""},{m:"NEW BLOCK INDEXED. CONTRACT STATE SYNCED.",t:"info"},{m:"AGENT HEARTBEAT. ALL SYSTEMS OPERATIONAL.",t:"info"},{m:"PROCUREMENT AGENT READY FOR AUTONOMOUS PAYMENT EXECUTION.",t:""},{m:"TRADEPROOF SCORE ENGINE ACTIVE.",t:""}];
+
+const AL=[
+  {m:"Scanning Arc Testnet for new Purchase Orders...",t:"info"},
+  {m:"Block confirmed. Monitoring escrow balances.",t:""},
+  {m:"Checking delivery conditions for active orders...",t:""},
+  {m:"Arc Testnet RPC responding. Latency: 38ms",t:"info"},
+  {m:"USDC escrow integrity verified. All funds secured.",t:""},
+  {m:"CCTP cross-chain routes available. Ready for settlement.",t:""},
+  {m:"New block indexed. TradeProof contract state synced.",t:"info"},
+  {m:"Agent heartbeat. All systems operational.",t:"info"},
+  {m:"Procurement agent ready for autonomous payment execution.",t:""},
+  {m:"TradeProof Score engine active. Credit profiles updating.",t:""},
+];
+
 let ai=0;
+
 function addLog(msg,type=""){
-  const log=document.getElementById("agentLog"),now=new Date(),t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`,el=document.createElement("div");
-  el.className="log-entry";el.innerHTML=`<span class="log-time">${t}</span><span class="log-msg ${type}">${msg}</span>`;
-  log.insertBefore(el,log.firstChild);if(log.children.length>20)log.removeChild(log.lastChild);
-  document.getElementById("agentLiveLog").textContent=msg;
+  const log=document.getElementById("agentLog");
+  const now=new Date();
+  const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const el=document.createElement("div");
+  el.className="log-row";
+  el.innerHTML=`<span class="log-t">${t}</span><span class="log-m ${type}">${msg}</span>`;
+  log.insertBefore(el,log.firstChild);
+  if(log.children.length>20)log.removeChild(log.lastChild);
+  document.getElementById("agentLive").textContent=msg;
 }
+
 function startAgent(){
-  document.getElementById("agentStatusText").textContent="ACTIVE // MONITORING ARC TESTNET FOR PROCUREMENT EVENTS";
+  document.getElementById("agentStatus").textContent="ACTIVE — MONITORING ARC TESTNET FOR PROCUREMENT EVENTS";
   setInterval(()=>{const i=AL[ai%AL.length];addLog(i.m,i.t);ai++;},4000);
 }
+
 async function connectWallet(){
-  if(!window.ethereum){showToast("error","METAMASK REQUIRED","Install MetaMask to use TradeProof.");return;}
+  if(!window.ethereum){showToast("error","MetaMask Required","Install MetaMask to use TradeProof.");return;}
   try{
-    showToast("loading","CONNECTING...","Requesting wallet access.");
+    showToast("loading","Connecting...","Requesting wallet access.");
     await window.ethereum.request({method:"eth_requestAccounts"});
     const cid=await window.ethereum.request({method:"eth_chainId"});
     if(parseInt(cid,16)!==CID){
       try{await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x"+CID.toString(16)}]});}
       catch{await window.ethereum.request({method:"wallet_addEthereumChain",params:[{chainId:"0x"+CID.toString(16),chainName:"Arc Testnet",nativeCurrency:{name:"USDC",symbol:"USDC",decimals:18},rpcUrls:[RPC],blockExplorerUrls:["https://testnet.arcscan.app"]}]});}
     }
-    provider=new ethers.BrowserProvider(window.ethereum);signer=await provider.getSigner();userAddress=await signer.getAddress();
-    contract=new ethers.Contract(CA,ABI,signer);usdcContract=new ethers.Contract(UA,UABI,signer);
+    provider=new ethers.BrowserProvider(window.ethereum);
+    signer=await provider.getSigner();
+    userAddress=await signer.getAddress();
+    contract=new ethers.Contract(CA,ABI,signer);
+    usdcContract=new ethers.Contract(UA,UABI,signer);
     const s=`${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
-    document.getElementById("walletPill").style.display="block";document.getElementById("walletPill").textContent=s;
-    document.getElementById("connectBtn").textContent="CONNECTED";document.getElementById("connectBtn").disabled=true;
-    showToast("success","WALLET CONNECTED",`${s} // Arc Testnet`);addLog(`WALLET CONNECTED: ${s}. LOADING TRADE PROFILE...`,"");
-    await loadDashboard();renderForm();
-  }catch(e){showToast("error","CONNECTION FAILED",e.message.slice(0,80));}
+    document.getElementById("walletDisplay").style.display="block";
+    document.getElementById("walletDisplay").textContent=s;
+    document.getElementById("connectBtn").textContent="Connected";
+    document.getElementById("connectBtn").disabled=true;
+    showToast("success","Wallet Connected",`${s} — Arc Testnet`);
+    addLog(`Wallet connected: ${s}. Loading trade profile...`,"");
+    await loadDashboard();
+    renderForm();
+  }catch(e){showToast("error","Connection Failed",e.message.slice(0,80));}
 }
+
 async function loadDashboard(){
   try{
-    const rp=new ethers.JsonRpcProvider(RPC),rc=new ethers.Contract(CA,ABI,rp),count=await rc.orderCount();
-    document.getElementById("totalOrders").textContent=count.toString();addLog(`FOUND ${count} TOTAL ORDERS ON ARC TESTNET.`,"");
+    const rp=new ethers.JsonRpcProvider(RPC),rc=new ethers.Contract(CA,ABI,rp);
+    const count=await rc.orderCount();
+    document.getElementById("totalOrders").textContent=count.toString();
+    addLog(`Found ${count} total orders on Arc Testnet.`,"");
     allOrders=[];let vol=0n;
     for(let i=1;i<=Number(count);i++){const o=await rc.getOrder(i);allOrders.push(o);if(Number(o[6])===3)vol+=o[3];}
     document.getElementById("totalVolume").textContent="$"+ethers.formatUnits(vol,6);
-    if(userAddress){const[sc,sv]=await rc.getCreditProfile(userAddress);const s=Number(sc);document.getElementById("myScore").textContent=s;const lv=s>=50?"GOLD":s>=20?"SILVER":s>=5?"BRONZE":"NEW";document.getElementById("myLevel").textContent=lv+" TRADER";addLog(`YOUR TRADEPROOF SCORE: ${s} (${lv})`,"");}
+    if(userAddress){
+      const[sc,sv]=await rc.getCreditProfile(userAddress);
+      const s=Number(sc);
+      document.getElementById("myScore").textContent=s;
+      const lv=s>=50?"Gold":s>=20?"Silver":s>=5?"Bronze":"New";
+      document.getElementById("myLevel").textContent=lv+" Trader";
+      addLog(`Your TradeProof Score: ${s} (${lv})`,"");
+    }
     renderOrders(allOrders,currentFilter);
-  }catch(e){addLog("ERROR LOADING CHAIN DATA: "+e.message.slice(0,50),"warn");}
+  }catch(e){addLog("Error loading chain data: "+e.message.slice(0,50),"warn");}
 }
-function filterOrders(f,el){currentFilter=f;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));el.classList.add("active");renderOrders(allOrders,f);}
+
+function filterOrders(f,el){
+  currentFilter=f;
+  document.querySelectorAll(".tab-btn").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  renderOrders(allOrders,f);
+}
+
 function renderOrders(orders,filter){
   const c=document.getElementById("ordersContainer");
   const filtered=filter==='all'?orders:orders.filter(o=>SM[Number(o[6])]===filter);
-  if(!filtered.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><p>NO ${filter==='all'?'':filter.toUpperCase()+' '}ORDERS DETECTED</p></div>`;return;}
+  if(!filtered.length){c.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No ${filter==='all'?'':filter+' '}orders detected</div></div>`;return;}
   c.innerHTML="";[...filtered].reverse().forEach(o=>{
-    const status=SM[Number(o[6])]||"Unknown",amount=ethers.formatUnits(o[3],6),date=new Date(Number(o[7])*1000).toLocaleDateString();
-    const shortB=o[1].slice(0,6)+"..."+o[1].slice(-4),shortS=o[2].slice(0,6)+"..."+o[2].slice(-4);
+    const status=SM[Number(o[6])]||"Unknown";
+    const amount=ethers.formatUnits(o[3],6);
+    const date=new Date(Number(o[7])*1000).toLocaleDateString();
+    const shortB=o[1].slice(0,6)+"..."+o[1].slice(-4);
+    const shortS=o[2].slice(0,6)+"..."+o[2].slice(-4);
     const isBuyer=userAddress&&o[1].toLowerCase()===userAddress.toLowerCase();
-    const sc=status==="Created"?"sc":status==="Funded"?"sf":status==="Completed"?"sco":status==="Disputed"?"sd":"";
-    const bc=status==="Created"?"bc":status==="Funded"?"bf":status==="Completed"?"bco":status==="Disputed"?"bd":"bca";
+    const spClass="sp-"+status.toLowerCase();
     let actions="";
     if(isBuyer){
-      if(status==="Created")actions+=`<button class="btn btn-cyan btn-sm" onclick="fundOrder(${o[0]})">FUND ESCROW</button>`;
-      if(status==="Funded")actions+=`<button class="btn-green" onclick="confirmDelivery(${o[0]})">CONFIRM DELIVERY</button><button class="btn-red" onclick="raiseDispute(${o[0]})">DISPUTE</button>`;
+      if(status==="Created")actions+=`<button class="btn btn-gold" onclick="fundOrder(${o[0]})">Fund Escrow</button>`;
+      if(status==="Funded")actions+=`<button class="btn-green" onclick="confirmDelivery(${o[0]})">Confirm Delivery</button><button class="btn-red" onclick="raiseDispute(${o[0]})" style="margin-left:8px">Dispute</button>`;
     }
-    c.innerHTML+=`<div class="order-item ${sc}"><div class="order-top"><span class="order-id">PO #${o[0]} // ${date}</span><span class="badge ${bc}">${status}</span></div><div class="order-desc">${o[4]}</div><div class="order-meta"><span>💰 ${amount} USDC</span><span>BUYER: ${shortB}</span><span>SUPPLIER: ${shortS}</span></div>${actions?`<div class="order-actions">${actions}</div>`:""}</div>`;
+    c.innerHTML+=`<div class="order-card"><div class="order-card-top"><span class="order-id">PO #${o[0]} &middot; ${date}</span><span class="status-pill ${spClass}">${status}</span></div><div class="order-desc">${o[4]}</div><div class="order-meta"><span>💰 ${amount} USDC</span><span>Buyer: ${shortB}</span><span>Supplier: ${shortS}</span></div>${actions?`<div class="order-actions">${actions}</div>`:""}</div>`;
   });
 }
+
 function renderForm(){
   document.getElementById("createFormArea").innerHTML=`
     <div class="form-group"><label class="form-label">Supplier Wallet Address</label><input class="form-input" id="supplier" placeholder="0x..."/></div>
     <div class="form-group"><label class="form-label">USDC Amount</label><input class="form-input" id="amount" type="number" placeholder="e.g. 100"/></div>
     <div class="form-group"><label class="form-label">Item Description</label><textarea class="form-input" id="itemDesc" placeholder="e.g. 500kg raw cashew nuts"></textarea></div>
     <div class="form-group"><label class="form-label">Delivery Condition</label><input class="form-input" id="deliveryCond" placeholder="e.g. GPS confirmed delivery to Lagos warehouse"/></div>
-    <button class="btn btn-cyan" style="width:100%" onclick="createOrder()">CREATE SMART PO ON ARC</button>`;
+    <button class="btn-full" onclick="createOrder()">Create Smart PO on Arc</button>`;
 }
+
 async function createOrder(){
   try{
-    const supplier=document.getElementById("supplier").value.trim(),amount=document.getElementById("amount").value.trim(),desc=document.getElementById("itemDesc").value.trim(),cond=document.getElementById("deliveryCond").value.trim();
-    if(!supplier||!amount||!desc||!cond){showToast("error","MISSING FIELDS","Fill in all fields.");return;}
-    showToast("loading","CREATING PO...","Sending transaction to Arc Testnet.");addLog(`AGENT: CREATING SMART PO // ${amount} USDC // ${supplier.slice(0,6)}...`,"warn");
-    const tx=await contract.createOrder(supplier,ethers.parseUnits(amount,6),desc,cond);showToast("loading","CONFIRMING...","Awaiting Arc block confirmation.");
-    const receipt=await tx.wait();showToast("success","PO CREATED ON ARC",`TX: ${receipt.hash.slice(0,10)}...`);addLog(`SMART PO CREATED. TX: ${receipt.hash.slice(0,10)}...`,"");await loadDashboard();
-  }catch(e){showToast("error","TX FAILED",e.message.slice(0,80));addLog("ERROR: "+e.message.slice(0,60),"warn");}
+    const supplier=document.getElementById("supplier").value.trim();
+    const amount=document.getElementById("amount").value.trim();
+    const desc=document.getElementById("itemDesc").value.trim();
+    const cond=document.getElementById("deliveryCond").value.trim();
+    if(!supplier||!amount||!desc||!cond){showToast("error","Missing Fields","Please fill in all fields.");return;}
+    showToast("loading","Creating PO...","Sending transaction to Arc Testnet.");
+    addLog(`Creating Smart PO — ${amount} USDC — ${supplier.slice(0,6)}...`,"warn");
+    const tx=await contract.createOrder(supplier,ethers.parseUnits(amount,6),desc,cond);
+    showToast("loading","Confirming...","Awaiting Arc block confirmation.");
+    const receipt=await tx.wait();
+    showToast("success","PO Created on Arc",`TX: ${receipt.hash.slice(0,12)}...`);
+    addLog(`Smart PO created. TX: ${receipt.hash.slice(0,12)}...`,"");
+    await loadDashboard();
+  }catch(e){showToast("error","Transaction Failed",e.message.slice(0,80));addLog("Error: "+e.message.slice(0,60),"warn");}
 }
+
 async function fundOrder(orderId){
   try{
-    showToast("loading","APPROVING USDC...","Approving escrow contract.");const o=await contract.getOrder(orderId);
+    showToast("loading","Approving USDC...","Approving escrow contract.");
+    const o=await contract.getOrder(orderId);
     const at=await usdcContract.approve(CA,o[3]);await at.wait();
-    showToast("loading","FUNDING ESCROW...","Locking USDC on Arc.");addLog(`AGENT: LOCKING ${ethers.formatUnits(o[3],6)} USDC IN ARC ESCROW...`,"warn");
+    showToast("loading","Funding Escrow...","Locking USDC on Arc.");
+    addLog(`Locking ${ethers.formatUnits(o[3],6)} USDC in Arc escrow...`,"warn");
     const tx=await contract.fundOrder(orderId);const receipt=await tx.wait();
-    showToast("success","ESCROW FUNDED",`${ethers.formatUnits(o[3],6)} USDC locked on Arc.`);addLog(`ORDER #${orderId} FUNDED. USDC SECURED IN ESCROW.`,"");await loadDashboard();
-  }catch(e){showToast("error","FUNDING FAILED",e.message.slice(0,80));}
+    showToast("success","Escrow Funded",`${ethers.formatUnits(o[3],6)} USDC locked on Arc.`);
+    addLog(`Order #${orderId} funded. USDC secured in escrow.`,"");
+    await loadDashboard();
+  }catch(e){showToast("error","Funding Failed",e.message.slice(0,80));}
 }
+
 async function confirmDelivery(orderId){
   try{
-    showToast("loading","CONFIRMING DELIVERY...","Releasing USDC to supplier.");addLog(`AGENT: DELIVERY CONFIRMED FOR ORDER #${orderId}. RELEASING PAYMENT...`,"warn");
+    showToast("loading","Confirming Delivery...","Releasing USDC to supplier.");
+    addLog(`Agent: Delivery confirmed for Order #${orderId}. Releasing payment...`,"warn");
     const tx=await contract.confirmDelivery(orderId);const receipt=await tx.wait();
-    showToast("success","PAYMENT RELEASED","USDC sent. TradeProof Scores updated.");addLog(`ORDER #${orderId} COMPLETE. USDC RELEASED.`,"");await loadDashboard();
-  }catch(e){showToast("error","FAILED",e.message.slice(0,80));}
+    showToast("success","Payment Released","USDC sent to supplier. TradeProof Scores updated.");
+    addLog(`Order #${orderId} complete. USDC released. Scores updated.`,"");
+    await loadDashboard();
+  }catch(e){showToast("error","Failed",e.message.slice(0,80));}
 }
+
 async function raiseDispute(orderId){
   try{
-    showToast("loading","RAISING DISPUTE...","Flagging order.");const tx=await contract.raiseDispute(orderId);await tx.wait();
-    showToast("success","DISPUTE RAISED","USDC remains in escrow.");addLog(`DISPUTE RAISED ON ORDER #${orderId}.`,"warn");await loadDashboard();
-  }catch(e){showToast("error","FAILED",e.message.slice(0,80));}
+    showToast("loading","Raising Dispute...","Flagging order for review.");
+    const tx=await contract.raiseDispute(orderId);await tx.wait();
+    showToast("success","Dispute Raised","USDC remains in escrow.");
+    addLog(`Dispute raised on Order #${orderId}. Funds held.`,"warn");
+    await loadDashboard();
+  }catch(e){showToast("error","Failed",e.message.slice(0,80));}
 }
+
 async function lookupCredit(){
   const addr=document.getElementById("creditAddress").value.trim();if(!addr)return;
   try{
-    const rp=new ethers.JsonRpcProvider(RPC),rc=new ethers.Contract(CA,ABI,rp),[score,volume]=await rc.getCreditProfile(addr);
-    const s=Number(score),vol=ethers.formatUnits(volume,6),level=s>=50?"GOLD":s>=20?"SILVER":s>=5?"BRONZE":"NEW";
-    const colors={GOLD:"var(--yellow)",SILVER:"#94a3b8",BRONZE:"#cd7f32",NEW:"var(--muted)"};const color=colors[level];const deg=Math.min(360,(s/50)*360);
-    document.getElementById("creditResult").innerHTML=`<div style="height:1px;background:var(--border);margin:16px 0"></div><div class="credit-display"><div class="score-ring" style="background:conic-gradient(${color} ${deg}deg,var(--border) ${deg}deg)"><div class="score-inner"><div class="score-num" style="color:${color}">${s}</div><div class="score-lbl">SCORE</div></div></div><div class="credit-level" style="color:${color}">${level} TRADER</div><div style="font-size:10px;color:var(--muted)">${vol} USDC SETTLED</div><div style="font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px">${s} VERIFIED TRADE${s!==1?'S':''} ON ARC</div></div>`;
-    addLog(`CREDIT LOOKUP: ${addr.slice(0,6)}... SCORE: ${s} (${level})`,"");
-  }catch(e){document.getElementById("creditResult").innerHTML=`<p style="color:var(--red);font-size:10px;margin-top:12px;letter-spacing:1px">ERROR: ${e.message.slice(0,60)}</p>`;}
+    const rp=new ethers.JsonRpcProvider(RPC),rc=new ethers.Contract(CA,ABI,rp);
+    const[score,volume]=await rc.getCreditProfile(addr);
+    const s=Number(score),vol=ethers.formatUnits(volume,6);
+    const level=s>=50?"Gold":s>=20?"Silver":s>=5?"Bronze":"New";
+    const colors={Gold:"var(--gold2)",Silver:"var(--silver)",Bronze:"#cd7f32",New:"var(--muted)"};
+    const color=colors[level];
+    const deg=Math.min(360,(s/50)*360);
+    document.getElementById("creditResult").innerHTML=`
+      <div class="divider"></div>
+      <div class="credit-display">
+        <div class="credit-ring" style="background:conic-gradient(${color} ${deg}deg,var(--border) ${deg}deg)">
+          <div class="credit-inner">
+            <div class="credit-num" style="color:${color}">${s}</div>
+            <div class="credit-lbl">SCORE</div>
+          </div>
+        </div>
+        <div class="credit-level-name" style="color:${color}">${level} Trader</div>
+        <div class="credit-vol">${vol} USDC settled on Arc</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px">${s} verified trade${s!==1?'s':''}</div>
+      </div>`;
+    addLog(`Credit lookup: ${addr.slice(0,6)}... Score: ${s} (${level})`,"");
+  }catch(e){document.getElementById("creditResult").innerHTML=`<p style="color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:10px;margin-top:12px">Error: ${e.message.slice(0,60)}</p>`;}
 }
+
 function showToast(type,title,msg){
   const ex=document.querySelector(".toast");if(ex)ex.remove();
   const t=document.createElement("div");t.className=`toast ${type}`;
   t.innerHTML=`<div class="toast-title">${type==='loading'?'<span class="spinner"></span>':''}${title}</div><div class="toast-msg">${msg}</div>`;
-  document.getElementById("toastContainer").appendChild(t);if(type!=="loading")setTimeout(()=>t.remove(),4000);
+  document.getElementById("toastContainer").appendChild(t);
+  if(type!=="loading")setTimeout(()=>t.remove(),4000);
 }
+
 window.addEventListener("load",()=>{
   startAgent();
   const rp=new ethers.JsonRpcProvider(RPC),rc=new ethers.Contract(CA,ABI,rp);
   rc.orderCount().then(count=>{
     document.getElementById("totalOrders").textContent=count.toString();
-    for(let i=1;i<=Number(count);i++){rc.getOrder(i).then(o=>{allOrders.push(o);renderOrders(allOrders,currentFilter);const vol=allOrders.filter(o=>Number(o[6])===3).reduce((s,o)=>s+BigInt(o[3]),0n);document.getElementById("totalVolume").textContent="$"+ethers.formatUnits(vol,6);});}
+    for(let i=1;i<=Number(count);i++){
+      rc.getOrder(i).then(o=>{
+        allOrders.push(o);
+        renderOrders(allOrders,currentFilter);
+        const vol=allOrders.filter(o=>Number(o[6])===3).reduce((s,o)=>s+BigInt(o[3]),0n);
+        document.getElementById("totalVolume").textContent="$"+ethers.formatUnits(vol,6);
+      });
+    }
     if(Number(count)===0)renderOrders([],currentFilter);
   }).catch(()=>{});
 });
